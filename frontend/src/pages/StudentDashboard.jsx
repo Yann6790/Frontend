@@ -1,29 +1,17 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import mmiLogo from '../Images/mmilogo.png';
-
-const today = new Date();
-const addDays = (date, days) => {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result.toISOString().split('T')[0];
-};
-
-const mockSAE = [
-  { id: 1, titre: "SAE 301: Conception Web", dateRendu: addDays(today, 2), matiere: "Dév Web", note: null, statut: "À rendre" },
-  { id: 2, titre: "SAE 302: Vidéo de présentation", dateRendu: addDays(today, 10), matiere: "Audiovisuel", note: null, statut: "À rendre" },
-  { id: 3, titre: "SAE 303: Maquette Figma", dateRendu: addDays(today, 1), matiere: "Design UX", note: null, statut: "À rendre" },
-  { id: 4, titre: "SAE 304: BDD SQL", dateRendu: addDays(today, 20), matiere: "Dév Web", note: null, statut: "À rendre" },
-  { id: 5, titre: "SAE 305: Portfolio", dateRendu: addDays(today, 40), matiere: "Design UX", note: null, statut: "À rendre" },
-  { id: 6, titre: "SAE 306: Interview pro", dateRendu: addDays(today, 7), matiere: "Communication", note: null, statut: "À rendre" },
-  { id: 7, titre: "SAE 201: Site Vitrine", dateRendu: addDays(today, -30), matiere: "Dév Web", note: 16, statut: "Rendu" },
-  { id: 8, titre: "SAE 202: Affiche A1", dateRendu: addDays(today, -60), matiere: "Graphisme", note: 14, statut: "Rendu" },
-];
-
-
-const allMatieres = [...new Set(mockSAE.map(s => s.matiere))];
+import { useAuth } from '../context/AuthContext';
+import { saeService } from '../services/sae.service';
 
 export default function StudentDashboard() {
+  const { user } = useAuth();
+  
+  // Data States
+  const [saes, setSaes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // UI States
   const [activeTab, setActiveTab] = useState('urgentes');
   const [thresholds, setThresholds] = useState({ urgentes: 3, moment: 14 });
   const [selectedMatieres, setSelectedMatieres] = useState([]);
@@ -35,6 +23,45 @@ export default function StudentDashboard() {
   const [tempMoment, setTempMoment] = useState(thresholds.moment);
 
   const filterRef = useRef(null);
+
+  useEffect(() => {
+    const fetchSaes = async () => {
+      setIsLoading(true);
+      try {
+         const apiParams = {};
+         
+         // 1. Déduire l'ID de la promotion selon la structure du user
+         const promoId = user?.promotion?.id || user?.promotionId || user?.studentProfile?.promotionId;
+         if (promoId) apiParams.promotionId = promoId;
+
+         // 2. Déduire le groupe (A/B...)
+         const groupId = user?.groupTp || user?.studentProfile?.groupTp;
+         if (groupId) apiParams.groupId = groupId;
+
+         const data = await saeService.getSaeList(apiParams);
+         const allSaes = Array.isArray(data) ? data : data?.data || [];
+         
+         // --- DEBUG LOGS (F12) ---
+         console.log("[DEBUG DASHBOARD] API Params envoyés :", apiParams);
+         console.log("[DEBUG DASHBOARD] Réponse brute de /api/saes :", data);
+         console.log("[DEBUG DASHBOARD] Liste extraite (allSaes) :", allSaes);
+         
+         setSaes(allSaes);
+      } catch (error) {
+         console.error("[DEBUG DASHBOARD] Erreur lors de la récupération des SAEs :", error);
+      } finally {
+         setIsLoading(false);
+      }
+    };
+    
+    if (user) {
+      fetchSaes();
+    }
+  }, [user]);
+
+  const allMatieres = useMemo(() => {
+    return [...new Set(saes.map(s => s.thematic).filter(Boolean))];
+  }, [saes]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -61,6 +88,7 @@ export default function StudentDashboard() {
   };
 
   const calculateDaysRemaining = (dateRendu) => {
+    if (!dateRendu) return 999;
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const targetDate = new Date(dateRendu);
@@ -70,11 +98,12 @@ export default function StudentDashboard() {
   };
 
   const displayedSAEs = useMemo(() => {
-    // 1. Filtrer selon l'onglet
-    let filtered = mockSAE.filter(sae => {
-      const daysRemaining = calculateDaysRemaining(sae.dateRendu);
-      // Ne garder que ce qui n'est pas encore rendu pour ces onglets (jours >= 0)
-      if (sae.statut === "Rendu") return false;
+    let filtered = saes.filter(sae => {
+      // Les SAEs "Rendues" (isSubmitted) n'apparaissent plus dans le dashboard.
+      // Elles sont visibles dans l'onglet "Mes rendus".
+      if (sae.isSubmitted) return false;
+      
+      const daysRemaining = calculateDaysRemaining(sae.dueDate);
 
       if (activeTab === 'urgentes') {
         return daysRemaining <= thresholds.urgentes;
@@ -88,18 +117,19 @@ export default function StudentDashboard() {
 
     // 2. Filtrer par matière si des matières sont sélectionnées
     if (selectedMatieres.length > 0) {
-      filtered = filtered.filter(sae => selectedMatieres.includes(sae.matiere));
+      filtered = filtered.filter(sae => selectedMatieres.includes(sae.thematic));
     }
 
-    // Tri par date de rendu croissante
-    filtered.sort((a, b) => new Date(a.dateRendu) - new Date(b.dateRendu));
+    // Tri par date de rendu croissante (les null en dernier via 9999-12-31)
+    filtered.sort((a, b) => new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31'));
 
     return filtered;
-  }, [activeTab, thresholds, selectedMatieres]);
+  }, [activeTab, thresholds, selectedMatieres, saes]);
 
   const renderDaysText = (sae) => {
-    if (sae.statut === "Rendu") return `Rendu (Note: ${sae.note || '-'}/20)`;
-    const days = calculateDaysRemaining(sae.dateRendu);
+    if (sae.isSubmitted) return `Rendu`;
+    if (!sae.dueDate) return "Date de rendu indéfinie";
+    const days = calculateDaysRemaining(sae.dueDate);
     if (days < 0) return `En retard de ${Math.abs(days)} jour(s)`;
     if (days === 0) return "À rendre aujourd'hui !";
     if (days === 1) return "Rendu demain";
@@ -111,7 +141,7 @@ export default function StudentDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
         
-        {/* Logo MMI (Agrandis et en dessous de la navbar) */}
+        {/* Logo MMI */}
         <div className="flex justify-center md:justify-start mb-2">
           <img 
             src={mmiLogo} 
@@ -162,6 +192,9 @@ export default function StudentDashboard() {
                       Effacer tout
                     </button>
                   )}
+                  {allMatieres.length === 0 && (
+                    <span className="text-sm text-gray-500 italic p-2 block">Aucune matière existante</span>
+                  )}
                 </div>
               )}
             </div>
@@ -189,7 +222,7 @@ export default function StudentDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon}></path>
               </svg>
               {tab.label}
-              {activeTab === tab.id && displayedSAEs.length > 0 && (
+              {activeTab === tab.id && displayedSAEs.length > 0 && !isLoading && (
                 <span className="ml-1.5 bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md text-xs">
                   {displayedSAEs.length}
                 </span>
@@ -200,41 +233,64 @@ export default function StudentDashboard() {
 
         {/* 4. Zone de contenu (Grille des SAE) */}
         <div className="bg-white rounded-b-xl rounded-tr-xl shadow-sm border border-gray-200 p-5 md:p-6 min-h-[400px]">
-          {displayedSAEs.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+               <div className="w-10 h-10 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
+               <span className="text-gray-500 font-medium">Chargement de vos SAEs...</span>
+            </div>
+          ) : displayedSAEs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {displayedSAEs.map((sae, index) => {
-                const isUrgent = calculateDaysRemaining(sae.dateRendu) <= thresholds.urgentes && sae.statut !== "Rendu";
+                const daysLeft = calculateDaysRemaining(sae.dueDate);
+                const isUrgentContext = daysLeft <= thresholds.urgentes && !sae.isSubmitted;
+                
+                // Prioritize 'isUrgent' from backend if true, else frontend logic:
+                const isUrgent = sae.isUrgent || isUrgentContext;
                 
                 return (
                   <Link 
                     to={`/sae/${sae.id}`} 
                     key={`${sae.id}-${index}`}
-                    className={`block group bg-white rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 relative border ${isUrgent ? 'border-red-200 hover:border-red-300' : 'border-gray-100 hover:border-purple-200'}`}
+                    className={`block group bg-white rounded-lg overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 relative border ${isUrgent ? 'border-red-200 hover:border-red-300 bg-red-50/20' : 'border-gray-100 hover:border-purple-200'}`}
                   >
                     {/* Top color bar */}
                     <div className={`h-1.5 w-full ${isUrgent ? 'bg-red-500' : 'bg-purple-500'} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
                     
-                    <div className="p-4 flex flex-col h-full">
+                    {/* Banner Image Optional */}
+                    {sae.banner && (
+                      <div className="w-full h-32 bg-gray-200 overflow-hidden">
+                        <img src={sae.banner} alt={sae.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                    )}
+                    
+                    <div className="p-4 flex flex-col h-full min-h-[140px]">
                       <div className="flex justify-between items-start mb-3">
-                        <span className="inline-block bg-gray-50 text-gray-600 text-xs font-bold px-2 py-1 rounded-md border border-gray-100">
-                          {sae.matiere}
+                        <span className="inline-block bg-gray-50 text-gray-600 text-[11px] font-bold px-2 py-1 flex items-center justify-center rounded-md border border-gray-100 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                          {sae.thematic || 'Développement'}
                         </span>
-                        {sae.statut === "Rendu" && (
-                          <span className="bg-green-50 text-green-700 text-xs font-bold px-2 py-1 rounded-md border border-green-100">
+                        
+                        {sae.isSubmitted && (
+                          <span className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded border border-green-100 uppercase tracking-wide">
                             Terminé
                           </span>
                         )}
+                        {!sae.isSubmitted && isUrgent && (
+                           <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-1 rounded border border-red-100 uppercase tracking-wide flex items-center gap-1">
+                             <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                             Urgent
+                           </span>
+                        )}
                       </div>
                       
-                      <h3 className="text-base font-montserrat font-semibold text-gray-900 leading-tight mb-4 group-hover:text-purple-700 transition-colors">
-                        {sae.titre}
+                      <h3 className="text-base font-montserrat font-bold text-gray-900 leading-tight mb-4 group-hover:text-purple-700 transition-colors">
+                        {sae.title}
                       </h3>
                       
                       <div className="mt-auto pt-4 border-t border-gray-50 flex items-center gap-2">
-                        <svg className={`w-4 h-4 ${isUrgent ? 'text-red-500' : (sae.statut === "Rendu" ? 'text-green-500' : 'text-purple-500')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-4 h-4 ${isUrgent ? 'text-red-500' : (sae.isSubmitted ? 'text-green-500' : 'text-purple-500')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span className={`text-sm font-semibold ${isUrgent ? 'text-red-600' : (sae.statut === "Rendu" ? 'text-green-600' : 'text-gray-600')}`}>
+                        <span className={`text-sm font-semibold ${isUrgent ? 'text-red-600' : (sae.isSubmitted ? 'text-green-600' : 'text-gray-600')}`}>
                           {renderDaysText(sae)}
                         </span>
                       </div>
@@ -249,7 +305,7 @@ export default function StudentDashboard() {
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
               </div>
               <h3 className="text-lg font-montserrat font-semibold text-gray-700 mb-1">Aucune SAE trouvée</h3>
-              <p className="text-gray-500 text-sm max-w-sm">Il n'y a pas de projets correspondants à vos critères ou pour cette catégorie actuellement.</p>
+              <p className="text-gray-500 text-sm max-w-sm">Vous êtes à jour dans vos rendus pour cet onglet.</p>
             </div>
           )}
         </div>
@@ -281,7 +337,7 @@ export default function StudentDashboard() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="urgentes" className="block text-sm font-medium text-gray-700 mb-1">
-                    Jours pour SAE urgentes (défaut 3)
+                    Jours limite pour SAE (Urgentes)
                   </label>
                   <div className="relative">
                     <input 
@@ -300,7 +356,7 @@ export default function StudentDashboard() {
                 
                 <div>
                   <label htmlFor="moment" className="block text-sm font-medium text-gray-700 mb-1">
-                    Jours maximum pour SAE du moment (défaut 14)
+                    Jours limite pour SAE (Du moment)
                   </label>
                   <div className="relative">
                     <input 

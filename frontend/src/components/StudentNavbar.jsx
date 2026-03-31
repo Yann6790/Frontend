@@ -1,7 +1,10 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function StudentNavbar() {
+  const { user } = useAuth();
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 h-16 flex justify-between items-center shadow-sm sticky top-0 z-50 font-merriweather">
       {/* Côté Gauche : Logo */}
@@ -41,9 +44,13 @@ export default function StudentNavbar() {
 
       {/* Côté Droite : Profil & Déconnexion */}
       <div className="flex items-center gap-4">
-        <span className="font-semibold text-gray-700 hidden sm:inline-block">Hello étudiant</span>
-        <Link to="/profile" className="w-10 h-10 bg-gray-300 rounded-full border-2 border-purple-200 overflow-hidden hover:opacity-80 transition-opacity cursor-pointer shadow-sm">
-          <img src="https://placehold.co/100x100/e2e8f0/94a3b8?text=AV" alt="Avatar" className="w-full h-full object-cover" />
+        <span className="font-semibold text-gray-700 hidden sm:inline-block">Hello {user?.firstname || user?.name?.firstname || 'étudiant'}</span>
+        <Link to="/profile" className="w-10 h-10 bg-purple-100 text-purple-700 rounded-full border-2 border-purple-200 overflow-hidden hover:opacity-80 transition-opacity cursor-pointer shadow-sm flex items-center justify-center font-bold uppercase">
+          {user?.imageUrl ? (
+            <img src={user.imageUrl} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-sm">{user?.firstname?.[0] || user?.name?.firstname?.[0] || 'E'}</span>
+          )}
         </Link>
         <Link to="/" className="text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 px-4 py-2 flex items-center h-9 rounded-full transition-colors border border-purple-200 shadow-sm ml-2 hidden sm:flex">
           Se déconnecter

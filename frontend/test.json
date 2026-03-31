@@ -1,0 +1,52 @@
+[
+  {
+    "id": "c387618d-4d3d-4eb8-b3fc-c1ec5b238af6",
+    "title": "SAE MMI3",
+    "banner": "https://i.pinimg.com/1200x/f2/9f/7a/f29f7af6b35e675f2902acd33c7c6e17.jpg",
+    "description": "Graphisme de je sais pas quoi",
+    "instructions": "Les instructions de la SAE",
+    "semesterId": "11a11f32-5184-40af-9c51-d02d75ddd117",
+    "tdGroup": "A",
+    "thematic": "Graphisme",
+    "startDate": "2026-03-01T08:00:00.000Z",
+    "dueDate": "2026-03-24T23:59:59.000Z",
+    "isPublished": true,
+    "isUrgent": false,
+    "status": "finished",
+    "createdBy": {
+      "id": "9llHahd20VeTsIQZnIsP81WWze7ero4I",
+      "email": "djoumessi.michel08@gmail.com",
+      "name": {
+        "firstname": "Jean",
+        "lastname": "Dupont"
+      }
+    },
+    "createdAt": "2026-03-25T18:55:39.974Z",
+    "updatedAt": "2026-03-25T19:01:41.040Z"
+  },
+  {
+    "id": "73c8a4de-4ebf-4d86-afc8-8a5fece68c5b",
+    "title": "SAE 1",
+    "banner": "https://i.pinimg.com/1200x/f2/9f/7a/f29f7af6b35e675f2902acd33c7c6e17.jpg",
+    "description": "Graphisme de je sais pas quoi",
+    "instructions": "Les instructions de la SAE",
+    "semesterId": "11a11f32-5184-40af-9c51-d02d75ddd117",
+    "tdGroup": "B",
+    "thematic": "Graphisme",
+    "startDate": "2026-03-01T08:00:00.000Z",
+    "dueDate": "2026-03-15T23:59:59.000Z",
+    "isPublished": true,
+    "isUrgent": false,
+    "status": "finished",
+    "createdBy": {
+      "id": "9llHahd20VeTsIQZnIsP81WWze7ero4I",
+      "email": "djoumessi.michel08@gmail.com",
+      "name": {
+        "firstname": "Jean",
+        "lastname": "Dupont"
+      }
+    },
+    "createdAt": "2026-03-11T17:59:12.031Z",
+    "updatedAt": "2026-03-16T14:21:56.332Z"
+  }
+]
