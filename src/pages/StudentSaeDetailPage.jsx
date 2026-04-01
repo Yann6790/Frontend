@@ -1,11 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Folder, FolderOpen, FileText, ChevronDown, Clock, CheckCircle2, Megaphone } from 'lucide-react';
-import { saeService } from '../services/sae.service';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  FileText,
+  Folder,
+  FolderOpen,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { saeService } from "../services/sae.service";
 
 export default function StudentSaeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("presentation");
   const [openFolders, setOpenFolders] = useState({ default: true });
   const [phaseInput, setPhaseInput] = useState({});
   const [isSubmitting, setIsSubmitting] = useState({});
@@ -22,27 +33,40 @@ export default function StudentSaeDetailPage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [saeRes, docsRes, milestonesRes, progressRes, announcementsRes] = await Promise.all([
-          saeService.getSaeById(id),
-          saeService.getSaeDocuments(id),
-          saeService.getSaeMilestones(id),
-          saeService.getMyMilestoneProgress(id),
-          saeService.getAnnouncements(id),
-        ]);
+        const [saeRes, docsRes, milestonesRes, progressRes, announcementsRes] =
+          await Promise.all([
+            saeService.getSaeById(id),
+            saeService.getSaeDocuments(id),
+            saeService.getSaeMilestones(id),
+            saeService.getMyMilestoneProgress(id),
+            saeService.getAnnouncements(id),
+          ]);
 
         setSaeDefaults(saeRes.data || saeRes || null);
-        setDocumentsList(Array.isArray(docsRes) ? docsRes : docsRes?.data || []);
-        
-        const ms = Array.isArray(milestonesRes) ? milestonesRes : milestonesRes?.data || [];
-        setMilestonesList(ms.sort((a,b) => (a.position ?? 999) - (b.position ?? 999)));
-        
+        setDocumentsList(
+          Array.isArray(docsRes) ? docsRes : docsRes?.data || [],
+        );
+
+        const ms = Array.isArray(milestonesRes)
+          ? milestonesRes
+          : milestonesRes?.data || [];
+        setMilestonesList(
+          ms.sort((a, b) => (a.position ?? 999) - (b.position ?? 999)),
+        );
+
         // L'API (endpoint 57) retourne : { milestones: [{ milestone: {id, title}, progress: {...} }] }
         // On normalise en un tableau indexé par milestoneId pour accès facile
         const rawProgress = progressRes?.data || progressRes;
-        const milestoneProgressArr = rawProgress?.milestones || (Array.isArray(rawProgress) ? rawProgress : []);
+        const milestoneProgressArr =
+          rawProgress?.milestones ||
+          (Array.isArray(rawProgress) ? rawProgress : []);
         setMyProgress(milestoneProgressArr);
 
-        setAnnouncements(Array.isArray(announcementsRes) ? announcementsRes : announcementsRes?.data || []);
+        setAnnouncements(
+          Array.isArray(announcementsRes)
+            ? announcementsRes
+            : announcementsRes?.data || [],
+        );
 
         // Charger le rendu séparément (peut échouer avec 404 si pas encore soumis)
         try {
@@ -55,10 +79,10 @@ export default function StudentSaeDetailPage() {
         console.error("Erreur de chargement de la SAE", err);
         if (err.status === 403 || err.message?.includes("403")) {
           alert("Accès non autorisé.");
-          navigate('/student-dashboard');
+          navigate("/student-dashboard");
         } else {
           alert("Erreur lors du chargement de la SAE.");
-          navigate('/student-dashboard');
+          navigate("/student-dashboard");
         }
       } finally {
         setIsLoading(false);
@@ -68,7 +92,7 @@ export default function StudentSaeDetailPage() {
   }, [id, navigate]);
 
   const toggleFolder = (folderId) => {
-    setOpenFolders(prev => ({ ...prev, [folderId]: !prev[folderId] }));
+    setOpenFolders((prev) => ({ ...prev, [folderId]: !prev[folderId] }));
   };
 
   const calculateDaysRemaining = (targetDate) => {
@@ -92,267 +116,464 @@ export default function StudentSaeDetailPage() {
 
   const handlePhaseSubmit = async (milestoneId) => {
     try {
-      setIsSubmitting(prev => ({...prev, [milestoneId]: true}));
+      setIsSubmitting((prev) => ({ ...prev, [milestoneId]: true }));
       const message = phaseInput[milestoneId] || "";
       await saeService.postMilestoneProgress(id, milestoneId, {
         isReached: true,
-        message: message
+        message: message,
       });
       // Recharger la progression
       const progressRes = await saeService.getMyMilestoneProgress(id);
       const rawProgress = progressRes?.data || progressRes;
-      const milestoneProgressArr = rawProgress?.milestones || (Array.isArray(rawProgress) ? rawProgress : []);
+      const milestoneProgressArr =
+        rawProgress?.milestones ||
+        (Array.isArray(rawProgress) ? rawProgress : []);
       setMyProgress(milestoneProgressArr);
-      setPhaseInput(prev => ({...prev, [milestoneId]: ""}));
+      setPhaseInput((prev) => ({ ...prev, [milestoneId]: "" }));
     } catch (error) {
-       console.error("Erreur de soumission", error);
-       alert("Erreur de soumission. Veuillez réessayer.");
+      console.error("Erreur de soumission", error);
+      alert("Erreur de soumission. Veuillez réessayer.");
     } finally {
-      setIsSubmitting(prev => ({...prev, [milestoneId]: false}));
+      setIsSubmitting((prev) => ({ ...prev, [milestoneId]: false }));
     }
   };
 
   if (isLoading) {
-    return <div className="flex h-screen w-full items-center justify-center bg-slate-50"><div className="w-10 h-10 border-4 border-gray-200 border-t-[#A3477F] rounded-full animate-spin"></div></div>;
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-white">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-purple-600 rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   if (!saeDefaults) {
-    return <div className="flex h-screen w-full items-center justify-center bg-slate-50 text-gray-500">SAE introuvable</div>;
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-white text-slate-600">
+        SAE introuvable
+      </div>
+    );
   }
 
   const sae = saeDefaults;
   const daysRemainingGlobal = calculateDaysRemaining(sae.dueDate);
-  const authorName = sae.createdBy?.name ? `${sae.createdBy.name.firstname || ''} ${sae.createdBy.name.lastname || ''}`.trim() : "Professeur";
+  const authorName = sae.createdBy?.name
+    ? `${sae.createdBy.name.firstname || ""} ${sae.createdBy.name.lastname || ""}`.trim()
+    : "Professeur";
 
   const getPhaseStatus = (milestoneId) => {
     const prog = getMilestoneProgress(milestoneId);
-    if (prog?.isReached) return 'terminée';
-    return 'en cours'; // Le reste est disponible pour soumission
+    if (prog?.isReached) return "terminée";
+    return "en cours";
   };
 
-  const isFolderOpen = openFolders['default'] !== false;
+  const isFolderOpen = openFolders["default"] !== false;
 
   return (
-    <div className="w-full min-h-full bg-slate-50 py-10 px-4">
-      <div className="max-w-6xl mx-auto flex flex-col gap-10">
-        
-        {/* A. Section Haute */}
-        <section className="bg-white rounded-xl p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-gray-100">
-          <h1 className="text-3xl md:text-4xl font-black text-black text-center mb-6 tracking-tight">
-            {sae.title}
-          </h1>
-          <div className="flex flex-wrap justify-center gap-3 mb-6">
-            {sae.thematic && (
-              <span className="px-5 py-2 bg-[#A3477F]/10 text-[#A3477F] border border-[#A3477F]/20 rounded-full text-sm font-black tracking-wide shadow-sm">
-                {sae.thematic}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-2 text-gray-600 mb-12 bg-gray-50 border border-gray-100 max-w-max mx-auto px-6 py-3 rounded-2xl shadow-sm">
-            <span className="text-sm font-bold text-gray-400 uppercase tracking-widest mr-1">Équipe :</span>
-            <span className="text-[15px]">
-              <strong className="text-gray-900">{authorName}</strong>
-              <span className="text-[11px] text-[#A3477F] font-black uppercase tracking-wider ml-1.5">(Responsable)</span>
-            </span>
-          </div>
-          <div className="flex flex-col lg:flex-row gap-10 items-start">
-            <div className="w-full lg:w-1/2 flex flex-col gap-6">
-              <div className="inline-block border-l-4 border-[#A3477F] pl-4 mb-2">
-                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Description du Projet</h2>
-              </div>
-              <p className="text-gray-600 leading-relaxed text-lg font-light">
-                {sae.description || "Aucune description fournie pour cette SAE."}
+    <div className="w-full min-h-screen bg-white font-montserrat flex flex-col">
+      {/* BANNIÈRE FULL WIDTH EN HAUT */}
+      {sae.banner && (
+        <div className="w-full h-80 overflow-hidden bg-slate-100">
+          <img
+            src={sae.banner}
+            alt={sae.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      {/* CONTENU PRINCIPAL */}
+      <main className="flex-1 mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-12 sm:px-8">
+        {/* Back Button */}
+        <Link
+          to="/student-dashboard"
+          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold w-fit"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Retour au dashboard
+        </Link>
+
+        {/* Header Section */}
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex-1 space-y-3">
+              <h1 className="text-4xl font-black tracking-tight text-slate-950">
+                {sae.title}
+              </h1>
+              <p className="text-base text-slate-600">
+                {sae.description ||
+                  "Aucune description fournie pour cette SAE."}
               </p>
             </div>
           </div>
-        </section>
 
-        {/* B. Annonces */}
-        {announcements.length > 0 && (
-          <section className="bg-white rounded-xl p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-gray-100">
-            <div className="flex items-center gap-3 mb-5">
-              <Megaphone className="w-5 h-5 text-[#A3477F]" strokeWidth={1.5} />
-              <h2 className="text-xl font-black text-gray-900 tracking-tight">Annonces</h2>
-              <span className="bg-[#A3477F]/10 text-[#A3477F] text-xs font-black px-2 py-0.5 rounded-full">{announcements.length}</span>
-            </div>
-            <div className="flex flex-col gap-4">
-              {announcements.map(ann => (
-                <div key={ann.id} className="bg-[#A3477F]/5 border border-[#A3477F]/10 rounded-2xl p-5 hover:bg-[#A3477F]/8 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="mt-1 p-2 bg-white rounded-lg shadow-sm">
-                      <Megaphone className="w-4 h-4 text-[#A3477F]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 mb-1 text-lg">{ann.title}</p>
-                      <p className="text-gray-600 leading-relaxed whitespace-pre-line">{ann.content}</p>
-                      <div className="flex items-center gap-2 mt-3 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Publié le {new Date(ann.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* C. Section Milieu — Documents */}
-        <section className="bg-white rounded-xl p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-gray-100 antialiased">
-          <h2 className="text-2xl font-black text-gray-900 mb-6 tracking-tight">Documents & Ressources</h2>
-          <div className="flex flex-col gap-5">
-            <div className="border-b-4 border-[#A3477F] rounded-xl bg-gray-50/50 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-              <button
-                onClick={() => toggleFolder('default')}
-                className="w-full flex items-center justify-between p-4 hover:bg-gray-100 transition-colors group focus:outline-none"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-md shadow-sm transition-transform duration-300">
-                    {isFolderOpen ? <FolderOpen className="text-[#A3477F] w-5 h-5" strokeWidth={1.5} /> : <Folder className="text-[#A3477F] w-5 h-5" strokeWidth={1.5} />}
-                  </div>
-                  <span className="font-bold text-lg text-gray-800 tracking-tight">Ressources et Consignes</span>
-                </div>
-                <div className="p-2 bg-white rounded-full shadow-sm">
-                  <ChevronDown className={`w-5 h-5 text-gray-600 transition-transform duration-300 ${isFolderOpen ? 'rotate-180' : ''}`} />
-                </div>
-              </button>
-              <div className={`transition-all duration-400 ease-out ${isFolderOpen ? 'max-h-[1000px] opacity-100 py-2' : 'max-h-0 opacity-0'}`}>
-                <ul className="px-6 pb-6 pt-2 flex flex-col gap-3">
-                  {documentsList.length > 0 ? documentsList.map((doc, idx) => (
-                    <li key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-[#A3477F]/30 hover:-translate-y-0.5">
-                      <div className="bg-gray-50 p-2 rounded-lg group-hover:bg-[#A3477F]/10 transition-colors">
-                        <FileText className="w-5 h-5 text-gray-400 group-hover:text-[#A3477F] transition-colors" />
-                      </div>
-                      <a href={doc.url} target="_blank" rel="noreferrer" className="text-gray-700 font-medium hover:text-black transition-colors flex-1">{doc.name || `Document ${idx+1}`}</a>
-                    </li>
-                  )) : (
-                    <li className="text-gray-500 italic p-4">Aucun document disponible pour le moment.</li>
-                  )}
-                </ul>
-              </div>
+          {/* Meta Info */}
+          <div className="flex flex-wrap items-center gap-3">
+            {sae.thematic && (
+              <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">
+                {sae.thematic}
+              </Badge>
+            )}
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="font-semibold">Responsable :</span>
+              <span>{authorName}</span>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* D. Section Basse — Rendu & Paliers */}
-        <section className="bg-white rounded-xl p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-gray-100">
-          <div className="flex flex-col xl:flex-row gap-10">
-            
-            {/* Bloc Gauche — Statut du rendu */}
-            <div className="w-full xl:w-1/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-inner group">
-              <div className="bg-white p-3 rounded-xl shadow-sm mb-5 transition-transform duration-500">
-                {mySubmission
-                  ? <CheckCircle2 className="w-8 h-8 text-green-500" strokeWidth={1.5} />
-                  : <Clock className="w-8 h-8 text-[#A3477F]" strokeWidth={1.5} />
-                }
+        {/* Tabs */}
+        <div className="flex items-center gap-0 overflow-x-auto border-b border-slate-200">
+          {[
+            { id: "presentation", label: "Présentation" },
+            { id: "milestones", label: "Paliers" },
+            { id: "submission", label: "Rendu Final" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`py-3 px-6 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id ? "border-purple-600 text-purple-600" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* TAB: PRESENTATION */}
+        {activeTab === "presentation" && (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div className="flex flex-col gap-8">
+              {/* Documents Section */}
+              <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => toggleFolder("default")}
+                  className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    {isFolderOpen ? (
+                      <FolderOpen className="h-5 w-5 text-purple-600" />
+                    ) : (
+                      <Folder className="h-5 w-5 text-purple-600" />
+                    )}
+                    <span className="font-semibold text-slate-950">
+                      Ressources et Consignes
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={`h-5 w-5 text-slate-600 transition ${
+                      isFolderOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {isFolderOpen && (
+                  <div className="border-t border-slate-200 p-5 space-y-3">
+                    {documentsList.length > 0 ? (
+                      documentsList.map((doc, idx) => (
+                        <a
+                          key={idx}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition"
+                        >
+                          <FileText className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                          <span className="text-slate-700 font-medium flex-1">
+                            {doc.name || `Document ${idx + 1}`}
+                          </span>
+                        </a>
+                      ))
+                    ) : (
+                      <p className="text-slate-500 text-sm italic">
+                        Aucun document disponible.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-              <h3 className="text-lg font-bold text-gray-500 uppercase tracking-widest mb-2">
-                {mySubmission ? 'Rendu Final' : 'Rendu Final'}
-              </h3>
 
-              {mySubmission ? (
-                <>
-                  <p className="text-base font-black text-green-600 mb-2">✓ Soumis</p>
-                  <p className="text-xs text-gray-500 mb-4">Le {new Date(mySubmission.submittedAt).toLocaleDateString('fr-FR')}</p>
-                  <Link
-                    to={`/sae/${id}/rendu?mode=view`}
-                    className="w-full py-3 px-6 bg-white border-2 border-[#A3477F] text-[#A3477F] hover:bg-[#A3477F]/5 font-bold rounded-lg transition-all duration-200 text-sm tracking-wide flex items-center justify-center gap-2"
-                  >
-                    <span>Voir mon rendu</span>
-                    <FileText className="w-4 h-4" strokeWidth={1.5} />
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <p className="text-3xl font-black text-black mb-8 tracking-tight">
-                    {daysRemainingGlobal} Jours
+              {/* Instructions Section */}
+              {sae.instructions && (
+                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                  <h2 className="text-xl font-semibold text-slate-950 mb-4">
+                    Instructions
+                  </h2>
+                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                    {sae.instructions}
                   </p>
-                  <Link
-                    to={`/sae/${id}/rendu`}
-                    className="w-full py-4 px-6 bg-[#A3477F] hover:bg-[#8e3e6f] text-white font-bold rounded-lg shadow-[0_8px_20px_0_rgba(163,71,127,0.3)] hover:shadow-[0_12px_25px_rgba(163,71,127,0.4)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 text-lg tracking-wide flex items-center justify-center gap-2"
-                  >
-                    <span>Rendre la SAE</span>
-                    <CheckCircle2 className="w-5 h-5" strokeWidth={1.5} />
-                  </Link>
-                </>
+                </div>
               )}
             </div>
 
-            {/* Bloc Droite - Gestion des Paliers */}
-            <div className="w-full xl:w-2/3 flex flex-col">
-              
-              {milestonesList.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <Clock className="w-10 h-10 text-gray-300 mb-3" strokeWidth={1.5} />
-                  <p className="text-gray-500 font-medium">Aucun palier configuré pour cette SAE.</p>
-                  <p className="text-gray-400 text-sm mt-1">La SAE se déroule en un seul bloc.</p>
+            {/* Annonces - Sticky Sidebar */}
+            <aside className="lg:sticky lg:top-6 h-fit">
+              <div className="bg-white rounded-lg border border-slate-200 p-5">
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Annonces
+                  </h2>
+                  <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
+                    {announcements.length}
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                  {announcements.length > 0 ? (
+                    announcements.map((ann) => (
+                      <article
+                        key={ann.id}
+                        className="rounded-lg border border-purple-100 bg-purple-50/50 p-3"
+                      >
+                        <h3 className="text-sm font-semibold text-slate-900 leading-snug">
+                          {ann.title || "Annonce"}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-600 whitespace-pre-line line-clamp-4">
+                          {ann.content || "Aucun contenu."}
+                        </p>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {ann.createdAt
+                            ? new Date(ann.createdAt).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )
+                            : "Date non disponible"}
+                        </p>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500 text-center py-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                      Aucune annonce pour cette SAE.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {/* TAB: SUBMISSION */}
+        {activeTab === "submission" && (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div className="bg-white border border-slate-200 rounded-lg p-8">
+              <h2 className="text-2xl font-bold text-slate-950 mb-8">
+                Rendu Final
+              </h2>
+              {mySubmission ? (
+                <div className="space-y-6">
+                  {/* Success State */}
+                  <div className="flex items-start gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <CheckCircle2 className="h-8 w-8 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-bold text-green-900 text-lg">
+                        Rendu soumis ✓
+                      </p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Le{" "}
+                        {new Date(mySubmission.submittedAt).toLocaleDateString(
+                          "fr-FR",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link to={`/sae/${id}/rendu?mode=view`} className="block">
+                    <Button className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg">
+                      <FileText className="h-5 w-5 mr-2" />
+                      Consulter mon rendu
+                    </Button>
+                  </Link>
                 </div>
               ) : (
-                <>
-                  {/* ── Timeline visuelle ── */}
-                  <div className="flex flex-wrap items-center gap-3 mb-8">
+                <div className="space-y-6">
+                  {/* Deadline Info */}
+                  <div className="bg-white border border-slate-200 rounded-lg p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <p className="text-xs font-semibold uppercase text-slate-500">
+                          Date limite
+                        </p>
+                        <p className="text-lg font-semibold text-slate-950">
+                          {sae.dueDate
+                            ? new Date(sae.dueDate).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                            : "Non définie"}
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          {daysRemainingGlobal === 0 && "À rendre aujourd'hui"}
+                          {daysRemainingGlobal === 1 && "À rendre demain"}
+                          {daysRemainingGlobal > 1 &&
+                            `${daysRemainingGlobal} jours restants`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <Badge
+                          className={`${
+                            daysRemainingGlobal <= 3
+                              ? "bg-red-100 text-red-700 hover:bg-red-100"
+                              : daysRemainingGlobal <= 7
+                                ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-100"
+                                : "bg-green-100 text-green-700 hover:bg-green-100"
+                          }`}
+                        >
+                          {daysRemainingGlobal <= 3
+                            ? "Urgent"
+                            : daysRemainingGlobal <= 7
+                              ? "Prochainement"
+                              : "En ordre"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <Link to={`/sae/${id}/rendu`} className="block">
+                    <Button className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg">
+                      Rendre la SAE maintenant
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Annonces - Sticky Sidebar */}
+            <aside className="lg:sticky lg:top-6 h-fit">
+              <div className="bg-white rounded-lg border border-slate-200 p-5">
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Annonces
+                  </h2>
+                  <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
+                    {announcements.length}
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                  {announcements.length > 0 ? (
+                    announcements.map((ann) => (
+                      <article
+                        key={ann.id}
+                        className="rounded-lg border border-purple-100 bg-purple-50/50 p-3"
+                      >
+                        <h3 className="text-sm font-semibold text-slate-900 leading-snug">
+                          {ann.title || "Annonce"}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-600 whitespace-pre-line line-clamp-4">
+                          {ann.content || "Aucun contenu."}
+                        </p>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {ann.createdAt
+                            ? new Date(ann.createdAt).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )
+                            : "Date non disponible"}
+                        </p>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500 text-center py-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                      Aucune annonce pour cette SAE.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {/* TAB: MILESTONES */}
+        {activeTab === "milestones" && (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div className="bg-white border border-slate-200 rounded-lg p-6">
+              <h2 className="text-2xl font-bold text-slate-950 mb-6">
+                Paliers
+              </h2>
+              {milestonesList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Clock className="h-10 w-10 text-slate-300 mb-3" />
+                  <p className="text-slate-600 font-medium">
+                    Aucun palier configuré pour cette SAE.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Timeline */}
+                  <div className="flex items-center gap-2 mb-6">
                     {milestonesList.map((p, idx) => {
                       const statut = getPhaseStatus(p.id);
                       return (
-                        <div key={p.id} className="flex-1 min-w-[90px] flex flex-col gap-2 group">
-                          <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className={`absolute inset-0 transition-all duration-500 ${
-                                statut === 'terminée' ? 'bg-[#A3477F]' : 'bg-[#A3477F]/30'
-                              }`} 
+                        <div key={p.id} className="flex-1">
+                          <div className="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div
+                              className={`absolute inset-0 transition-all duration-300 ${
+                                statut === "terminée"
+                                  ? "bg-purple-600"
+                                  : "bg-slate-300"
+                              }`}
                             />
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            {statut === 'terminée' ? (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#A3477F] shrink-0" strokeWidth={2} />
-                            ) : (
-                              <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" strokeWidth={2} />
-                            )}
-                            <span className={`text-xs font-bold uppercase tracking-widest ${
-                              statut === 'terminée' ? 'text-[#A3477F]' : 'text-gray-400'
-                            }`}>
-                              Palier {idx + 1}
-                            </span>
+                          <div className="text-xs font-semibold text-slate-600 mt-2 text-center">
+                            Palier {idx + 1}
                           </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* ── Rendu de chaque palier ── */}
-                  <div className="flex flex-col gap-6">
+                  {/* Milestones */}
+                  <div className="space-y-5">
                     {milestonesList.map((currentPhase, idx) => {
                       const statut = getPhaseStatus(currentPhase.id);
                       const prog = getMilestoneProgress(currentPhase.id);
 
-                      if (statut === 'terminée') {
-                        /* ── Palier terminé : affichage de l'historique ── */
+                      if (statut === "terminée") {
                         return (
-                          <div key={currentPhase.id} className="rounded-xl border border-[#A3477F]/20 bg-[#A3477F]/5 p-5 flex flex-col gap-3">
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#A3477F] text-white font-black text-sm flex items-center justify-center shrink-0">
+                          <div
+                            key={currentPhase.id}
+                            className="border border-slate-200 rounded-lg p-4 bg-slate-50"
+                          >
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 mt-0.5">
                                   {idx + 1}
                                 </div>
                                 <div>
-                                  <h3 className="font-black text-gray-800 leading-tight">{currentPhase.title}</h3>
+                                  <h4 className="font-bold text-slate-950">
+                                    {currentPhase.title}
+                                  </h4>
                                   {currentPhase.description && (
-                                    <p className="text-gray-500 text-xs mt-0.5">{currentPhase.description}</p>
+                                    <p className="text-sm text-slate-600 mt-1">
+                                      {currentPhase.description}
+                                    </p>
                                   )}
                                 </div>
                               </div>
-                              <span className="inline-flex items-center gap-1.5 text-xs font-black text-[#A3477F] bg-[#A3477F]/10 border border-[#A3477F]/20 px-3 py-1.5 rounded-full">
-                                <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
+                              <Badge className="bg-green-100 text-green-700 hover:bg-green-100 flex-shrink-0">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
                                 Validé
-                                {prog?.reachedAt && (
-                                  <span className="text-[#A3477F]/60 font-medium">· {new Date(prog.reachedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
-                                )}
-                              </span>
+                              </Badge>
                             </div>
                             {prog?.message && (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Votre journal</span>
-                                <p className="text-gray-700 text-sm leading-relaxed bg-white border border-[#A3477F]/15 p-3 rounded-lg italic">
+                              <div className="mt-3 pt-3 border-t border-slate-200">
+                                <p className="text-xs font-semibold text-slate-600 mb-2">
+                                  VOTRE JOURNAL
+                                </p>
+                                <p className="text-sm text-slate-700 italic">
                                   "{prog.message}"
                                 </p>
                               </div>
@@ -361,63 +582,121 @@ export default function StudentSaeDetailPage() {
                         );
                       }
 
-                      /* ── Palier en cours : formulaire de soumission ── */
                       return (
-                        <div key={currentPhase.id} className="flex flex-col border-b border-gray-100 pb-8 last:border-0 last:pb-0">
-                          <div className="mb-6">
-                            <div className="inline-block px-4 py-1.5 bg-[#A3477F]/10 rounded-full mb-4">
-                              <span className="text-sm font-bold text-[#A3477F] uppercase tracking-wider">Palier en cours</span>
-                            </div>
-                            <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
-                              Palier {idx + 1} : {currentPhase.title}
-                            </h3>
+                        <div
+                          key={currentPhase.id}
+                          className="border border-slate-200 rounded-lg p-5 space-y-4"
+                        >
+                          <div>
+                            <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 mb-3">
+                              Palier en cours
+                            </Badge>
+                            <h4 className="text-lg font-bold text-slate-950">
+                              Palier {idx + 1}: {currentPhase.title}
+                            </h4>
                             {currentPhase.description && (
-                              <p className="text-gray-600 leading-relaxed">{currentPhase.description}</p>
+                              <p className="text-sm text-slate-600 mt-2">
+                                {currentPhase.description}
+                              </p>
                             )}
                           </div>
-                          
-                          <div className="flex flex-col gap-3 mb-6">
-                            <label htmlFor={`phase-input-${currentPhase.id}`} className="font-bold text-gray-800 flex items-center gap-2">
-                               <FileText className="w-5 h-5 text-gray-500" />
-                               Journal de bord
+
+                          <div className="space-y-2">
+                            <label
+                              htmlFor={`phase-input-${currentPhase.id}`}
+                              className="block text-sm font-semibold text-slate-950"
+                            >
+                              <FileText className="h-4 w-4 inline mr-2" />
+                              Journal de bord
                             </label>
-                            <textarea 
+                            <textarea
                               id={`phase-input-${currentPhase.id}`}
-                              value={phaseInput[currentPhase.id] || ''}
-                              onChange={(e) => setPhaseInput(prev => ({...prev, [currentPhase.id]: e.target.value}))}
-                              placeholder="Décrivez ce que vous avez accompli, les difficultés rencontrées, vos choix..."
-                              className="w-full min-h-[160px] p-4 border border-black rounded-lg bg-white focus:ring-2 focus:ring-[#A3477F]/20 focus:border-[#A3477F] transition-all duration-300 resize-y font-medium text-gray-800 shadow-sm placeholder:text-gray-400"
+                              value={phaseInput[currentPhase.id] || ""}
+                              onChange={(e) =>
+                                setPhaseInput((prev) => ({
+                                  ...prev,
+                                  [currentPhase.id]: e.target.value,
+                                }))
+                              }
+                              placeholder="Décrivez ce que vous avez accompli, les difficultés..."
+                              className="w-full min-h-32 p-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none text-sm"
                             />
                           </div>
 
-                          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <button 
+                          <div className="flex justify-end">
+                            <Button
                               onClick={() => handlePhaseSubmit(currentPhase.id)}
-                              disabled={isSubmitting[currentPhase.id] || !phaseInput[currentPhase.id]?.trim()}
-                              className="w-full sm:w-auto py-3 px-8 bg-[#A3477F] disabled:bg-gray-300 hover:bg-[#8e3e6f] text-white font-bold rounded-lg shadow-[0_8px_20px_0_rgba(163,71,127,0.3)] hover:shadow-[0_12px_25px_rgba(163,71,127,0.4)] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+                              disabled={
+                                isSubmitting[currentPhase.id] ||
+                                !phaseInput[currentPhase.id]?.trim()
+                              }
+                              className="bg-purple-600 hover:bg-purple-700 text-white disabled:bg-slate-300"
                             >
                               {isSubmitting[currentPhase.id] ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                               ) : (
-                                <>
-                                  <CheckCircle2 className="w-5 h-5" strokeWidth={1.5} />
-                                  <span>Valider ce palier</span>
-                                </>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
                               )}
-                            </button>
+                              Valider ce palier
+                            </Button>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                </>
+                </div>
               )}
             </div>
-          </div>
-        </section>
 
-      </div>
+            {/* Annonces - Sticky Sidebar */}
+            <aside className="lg:sticky lg:top-6 h-fit">
+              <div className="bg-white rounded-lg border border-slate-200 p-5">
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Annonces
+                  </h2>
+                  <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
+                    {announcements.length}
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                  {announcements.length > 0 ? (
+                    announcements.map((ann) => (
+                      <article
+                        key={ann.id}
+                        className="rounded-lg border border-purple-100 bg-purple-50/50 p-3"
+                      >
+                        <h3 className="text-sm font-semibold text-slate-900 leading-snug">
+                          {ann.title || "Annonce"}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-600 whitespace-pre-line line-clamp-4">
+                          {ann.content || "Aucun contenu."}
+                        </p>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {ann.createdAt
+                            ? new Date(ann.createdAt).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )
+                            : "Date non disponible"}
+                        </p>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500 text-center py-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                      Aucune annonce pour cette SAE.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
-

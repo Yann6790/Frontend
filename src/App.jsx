@@ -1,31 +1,31 @@
-import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { Route, Routes } from 'react-router-dom';
 import AuthGuard from './components/AuthGuard';
+import { AuthProvider } from './context/AuthContext';
 
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import OnboardingPage from './pages/OnboardingPage';
-import PendingValidation from './pages/PendingValidation';
-import PublicGallery from './pages/PublicGallery';
-import StudentDashboard from './pages/StudentDashboard';
-import ProfilePage from './pages/ProfilePage';
-import StudentGalleryPage from './pages/StudentGalleryPage';
-import StudentAnnouncementsPage from './pages/StudentAnnouncementsPage';
-import StudentRendusPage from './pages/StudentRendusPage';
+import './App.css';
 import StudentLayout from './components/StudentLayout';
 import TeacherLayout from './components/TeacherLayout';
-import TeacherDashboard from './pages/TeacherDashboard';
-import TeacherAnnouncementsPage from './pages/TeacherAnnouncementsPage';
-import TeacherSaeDetailPage from './pages/TeacherSaeDetailPage';
-import TeacherGalleryPage from './pages/TeacherGalleryPage';
-import TeacherAdvancedViewPage from './pages/TeacherAdvancedViewPage';
 import AdminAccountManagement from './pages/AdminAccountManagement';
+import AdminSaeManagement from './pages/AdminSaeManagement';
 import AdminStudentValidation from './pages/AdminStudentValidation';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import OnboardingPage from './pages/OnboardingPage';
+import PendingValidation from './pages/PendingValidation';
+import ProfilePage from './pages/ProfilePage';
+import PublicGallery from './pages/PublicGallery';
+import RegisterPage from './pages/RegisterPage';
+import StudentAnnouncementsPage from './pages/StudentAnnouncementsPage';
+import StudentDashboard from './pages/StudentDashboard';
+import StudentGalleryPage from './pages/StudentGalleryPage';
+import StudentRendusPage from './pages/StudentRendusPage';
 import StudentSaeDetailPage from './pages/StudentSaeDetailPage';
 import StudentSaeSubmissionPage from './pages/StudentSaeSubmissionPage';
-import AdminSaeManagement from './pages/AdminSaeManagement';
-import './App.css';
+import TeacherAdvancedViewPage from './pages/TeacherAdvancedViewPage';
+import TeacherAnnouncementsPage from './pages/TeacherAnnouncementsPage';
+import TeacherDashboard from './pages/TeacherDashboard';
+import TeacherGalleryPage from './pages/TeacherGalleryPage';
+import TeacherSaeDetailPage from './pages/TeacherSaeDetailPage';
 
 function App() {
   return (
@@ -51,9 +51,10 @@ function App() {
             <Route path="/student/gallery" element={<StudentGalleryPage />} />
             <Route path="/student/annonces" element={<StudentAnnouncementsPage />} />
             <Route path="/student/rendus" element={<StudentRendusPage />} />
-            <Route path="/sae/:id" element={<StudentSaeDetailPage />} />
-            <Route path="/sae/:id/rendu" element={<StudentSaeSubmissionPage />} />
           </Route>
+          {/* SAE Detail Pages (without navbar) */}
+          <Route path="/sae/:id" element={<StudentSaeDetailPage />} />
+          <Route path="/sae/:id/rendu" element={<StudentSaeSubmissionPage />} />
         </Route>
 
         {/* PROTECTED ROUTES: TEACHER */}
@@ -61,11 +62,11 @@ function App() {
           <Route element={<TeacherLayout />}>
             <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
             <Route path="/teacher/annonces" element={<TeacherAnnouncementsPage />} />
-            <Route path="/teacher/sae/:id" element={<TeacherSaeDetailPage />} />
             <Route path="/teacher/galerie" element={<TeacherGalleryPage />} />
             <Route path="/teacher/galerie/avancee" element={<TeacherAdvancedViewPage />} />
-            {/* Alias : évite que le prof se retrouve sur la route étudiant */}
           </Route>
+          {/* SAE Detail Page (without navbar) */}
+          <Route path="/teacher/sae/:id" element={<TeacherSaeDetailPage />} />
         </Route>
 
         {/* SHARED PROTECTED ROUTES (Profile) */}

@@ -1,51 +1,153 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ChevronLeft, Trash2, ShieldAlert } from 'lucide-react';
-
-const initialMockRealizations = [
-  { id: 'r1', titre: 'Refonte App Météo', etudiant: 'Alice Dupont', image: 'url', note: 16, promo: 2024, matiere: 'Design', publicationDate: '2024-05-10', isForceHidden: false },
-  { id: 'r2', titre: 'API Node.js', etudiant: 'Bob Martin', image: 'url', note: 18, promo: 2024, matiere: 'Développement', publicationDate: '2024-06-01', isForceHidden: true },
-  { id: 'r3', titre: 'Campagne Réseaux Sociaux', etudiant: 'Charlie Brun', image: 'url', note: 14, promo: 2023, matiere: 'Communication', publicationDate: '2023-12-15', isForceHidden: false },
-  { id: 'r4', titre: 'Court-métrage Fiction', etudiant: 'Diana Prince', image: 'url', note: 15, promo: 2023, matiere: 'Audiovisuel', publicationDate: '2023-11-20', isForceHidden: false },
-  { id: 'r5', titre: 'Site E-commerce React', etudiant: 'Evan Rachel', image: 'url', note: 12, promo: 2025, matiere: 'Développement', publicationDate: '2025-01-05', isForceHidden: false }
-];
+import { ChevronLeft, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { saeService } from "../services/sae.service";
 
 export default function TeacherAdvancedViewPage() {
-  const [realizations, setRealizations] = useState(initialMockRealizations);
-  
-  // States pour filtres
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMatiere, setSelectedMatiere] = useState('Toutes');
-  const [selectedPromo, setSelectedPromo] = useState('Toutes');
+  const [realizations, setRealizations] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Bulk Delete State
-  const [bulkYear, setBulkYear] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMatiere, setSelectedMatiere] = useState("Toutes");
+  const [selectedPromo, setSelectedPromo] = useState("Toutes");
 
-  const matieres = ["Toutes", ...new Set(initialMockRealizations.map(r => r.matiere))];
-  const promos = ["Toutes", ...new Set(initialMockRealizations.map(r => r.promo).sort((a,b)=>b-a))];
+  const [bulkYear, setBulkYear] = useState("");
 
-  const handleBulkDelete = () => {
+  useEffect(() => {
+    const loadRows = async () => {
+      setIsLoading(true);
+      try {
+        const saesRes = await saeService.getSaeList();
+        const saes = Array.isArray(saesRes)
+          ? saesRes
+          : saesRes?.data || saesRes?.items || [];
+
+        const settledSubs = await Promise.allSettled(
+          saes.map(async (sae) => {
+            const subRes = await saeService.getSubmissions(sae.id);
+            const subs = Array.isArray(subRes)
+              ? subRes
+              : subRes?.data || subRes?.items || [];
+            return { sae, subs };
+          }),
+        );
+
+        const rows = [];
+        settledSubs.forEach((entry) => {
+          if (entry.status !== "fulfilled") return;
+          const { sae, subs } = entry.value;
+          subs.forEach((sub) => {
+            const fullName =
+              `${sub?.name?.firstname || ""} ${sub?.name?.lastname || ""}`.trim() ||
+              `${sub?.student?.firstname || ""} ${sub?.student?.lastname || ""}`.trim() ||
+              "Etudiant";
+
+            rows.push({
+              id: sub.id,
+              saeId: sae.id,
+              titre: sae.title || sub.description || "Sans titre",
+              etudiant: fullName,
+              note: sub.average ?? null,
+              promo: new Date(
+                sub.submittedAt || sae.dueDate || sae.createdAt || Date.now(),
+              ).getFullYear(),
+              matiere:
+                typeof sae.thematic === "string"
+                  ? sae.thematic
+                  : sae.thematic?.label || sae.thematic?.name || "Non definie",
+              publicationDate: sub.submittedAt || sae.createdAt,
+              isForceHidden: sub.isPublic === false,
+            });
+          });
+        });
+
+        setRealizations(rows);
+      } catch (err) {
+        console.error("Erreur de chargement de la galerie avancee", err);
+        alert(err?.message || "Erreur lors du chargement des donnees.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadRows();
+  }, []);
+
+  const matieres = [
+    "Toutes",
+    ...new Set(realizations.map((r) => r.matiere).filter(Boolean)),
+  ];
+  const promos = [
+    "Toutes",
+    ...new Set(realizations.map((r) => r.promo).filter(Boolean)).values(),
+  ].sort((a, b) => {
+    if (a === "Toutes") return -1;
+    if (b === "Toutes") return 1;
+    return Number(b) - Number(a);
+  });
+
+  const handleBulkDelete = async () => {
     if (!bulkYear || bulkYear.length !== 4) {
-      alert("Veuillez entrer une année valide (ex: 2024).");
-      return;
-    }
-    const yearNum = parseInt(bulkYear, 10);
-    const countToDelete = realizations.filter(r => new Date(r.publicationDate).getFullYear() === yearNum).length;
-    
-    if (countToDelete === 0) {
-      alert(`Aucune réalisation trouvée pour l'année ${yearNum}.`);
+      alert("Veuillez entrer une annee valide (ex: 2024).");
       return;
     }
 
-    if (window.confirm(`⚠️ ATTENTION ⚠️\nVous êtes sur le point de supprimer DÉFINITIVEMENT ${countToDelete} réalisation(s) de la promo/année ${yearNum}.\nCette action est irréversible. Continuer ?`)) {
-      setRealizations(prev => prev.filter(r => new Date(r.publicationDate).getFullYear() !== yearNum));
-      alert(`${countToDelete} réalisation(s) supprimée(s) avec succès.`);
-      setBulkYear('');
+    const yearNum = parseInt(bulkYear, 10);
+    const targets = realizations.filter(
+      (r) => new Date(r.publicationDate).getFullYear() === yearNum,
+    );
+
+    if (targets.length === 0) {
+      alert(`Aucune realisation trouvee pour l'annee ${yearNum}.`);
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `ATTENTION\nVous etes sur le point de supprimer DEFINITIVEMENT ${targets.length} realisation(s) de l'annee ${yearNum}.\nCette action est irreversible. Continuer ?`,
+      )
+    ) {
+      return;
+    }
+
+    const results = await Promise.allSettled(
+      targets.map((row) => saeService.deleteSubmission(row.id)),
+    );
+    const okCount = results.filter((r) => r.status === "fulfilled").length;
+
+    setRealizations((prev) =>
+      prev.filter((r) => new Date(r.publicationDate).getFullYear() !== yearNum),
+    );
+    setBulkYear("");
+    alert(`${okCount} realisation(s) supprimee(s) avec succes.`);
+  };
+
+  const handleToggleHideStatus = async (row) => {
+    const nextIsPublic = row.isForceHidden;
+    try {
+      await saeService.updateSubmissionVisibility(
+        row.saeId,
+        row.id,
+        nextIsPublic,
+      );
+      setRealizations((prev) =>
+        prev.map((r) =>
+          r.id === row.id ? { ...r, isForceHidden: !r.isForceHidden } : r,
+        ),
+      );
+    } catch (err) {
+      alert(err?.message || "Erreur lors du changement de visibilite.");
     }
   };
 
-  const handleToggleHideStatus = (id) => {
-    setRealizations(prev => prev.map(r => r.id === id ? { ...r, isForceHidden: !r.isForceHidden } : r));
+  const handleDeleteOne = async (id) => {
+    if (!window.confirm("Supprimer definitivement ce rendu ?")) return;
+    try {
+      await saeService.deleteSubmission(id);
+      setRealizations((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      alert(err?.message || "Erreur lors de la suppression.");
+    }
   };
 
   const displayedRows = useMemo(() => {
@@ -53,131 +155,245 @@ export default function TeacherAdvancedViewPage() {
 
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
-      filtered = filtered.filter(r => r.titre.toLowerCase().includes(lowerSearch) || r.etudiant.toLowerCase().includes(lowerSearch));
-    }
-    if (selectedMatiere !== 'Toutes') {
-      filtered = filtered.filter(r => r.matiere === selectedMatiere);
-    }
-    if (selectedPromo !== 'Toutes') {
-      filtered = filtered.filter(r => r.promo.toString() === selectedPromo.toString());
+      filtered = filtered.filter(
+        (r) =>
+          r.titre.toLowerCase().includes(lowerSearch) ||
+          r.etudiant.toLowerCase().includes(lowerSearch),
+      );
     }
 
-    // Sort by publicationDate descending
-    filtered.sort((a, b) => new Date(b.publicationDate) - new Date(a.publicationDate));
+    if (selectedMatiere !== "Toutes") {
+      filtered = filtered.filter((r) => r.matiere === selectedMatiere);
+    }
+
+    if (selectedPromo !== "Toutes") {
+      filtered = filtered.filter(
+        (r) => r.promo?.toString() === selectedPromo.toString(),
+      );
+    }
+
+    filtered.sort(
+      (a, b) => new Date(b.publicationDate) - new Date(a.publicationDate),
+    );
 
     return filtered;
   }, [realizations, searchTerm, selectedMatiere, selectedPromo]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-montserrat pb-20">
-      
-      {/* Header section */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
-          <div className="flex items-center gap-4 mb-6">
-            <Link to="/teacher/galerie" className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
-              <ChevronLeft className="w-6 h-6" />
+    <div className="min-h-screen bg-white font-montserrat pb-20">
+      <main className="mx-auto mt-16 flex w-full max-w-7xl flex-col gap-8 px-6 py-12 sm:px-8">
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/teacher/galerie"
+              className="flex w-fit items-center gap-2 font-semibold text-purple-600 hover:text-purple-700"
+            >
+              <ChevronLeft className="h-5 w-5" /> Retour galerie
             </Link>
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tight">
-                Visualisation Avancée de la Galerie
-                <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full">{realizations.length} Projets</span>
-              </h1>
-              <p className="text-gray-500 font-medium text-sm mt-1">Gestion brute des données ("Bulk Delete", modifications de status rapides).</p>
-            </div>
           </div>
 
-          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6">
-            {/* Filters */}
+          <div className="space-y-2">
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+              Espace professeur
+            </p>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input 
-                  type="text" 
-                  placeholder="Rechercher..." 
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm"
-                />
+              <h1 className="text-4xl font-black tracking-tight text-slate-950">
+                Visualisation avancee
+              </h1>
+              <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
+                {realizations.length} projets
+              </span>
+            </div>
+            <p className="text-base text-slate-600">
+              Pilotez les publications avec des filtres rapides et des actions
+              de moderation.
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm sm:p-5">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+            <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Filtres
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative min-w-[250px] flex-1 sm:flex-initial">
+                  <input
+                    type="text"
+                    placeholder="Rechercher un etudiant ou un projet"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                  />
+                </div>
+
+                <select
+                  value={selectedMatiere}
+                  onChange={(e) => setSelectedMatiere(e.target.value)}
+                  className="h-11 min-w-[170px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                >
+                  {matieres.map((m) => (
+                    <option key={m} value={m}>
+                      {m === "Toutes" ? "Toutes matieres" : m}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedPromo}
+                  onChange={(e) => setSelectedPromo(e.target.value)}
+                  className="h-11 min-w-[150px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                >
+                  {promos.map((p) => (
+                    <option key={String(p)} value={p}>
+                      {p === "Toutes" ? "Toutes promos" : p}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <select value={selectedMatiere} onChange={e => setSelectedMatiere(e.target.value)} className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 outline-none cursor-pointer">
-                {matieres.map(m => <option key={m} value={m}>{m === 'Toutes' ? 'Toutes Matières' : m}</option>)}
-              </select>
-              <select value={selectedPromo} onChange={e => setSelectedPromo(e.target.value)} className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 outline-none cursor-pointer">
-                {promos.map(p => <option key={p} value={p}>{p === 'Toutes' ? 'Toutes Promos' : p}</option>)}
-              </select>
             </div>
 
-            {/* Bulk Delete Zone */}
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 px-4 py-3 rounded-xl">
-               <ShieldAlert className="w-5 h-5 text-red-500" />
-               <input 
-                 type="number" 
-                 placeholder="Ex: 2023"
-                 value={bulkYear}
-                 onChange={e => setBulkYear(e.target.value)}
-                 className="w-24 px-3 py-1.5 bg-white border border-red-200 rounded text-sm text-center font-bold focus:outline-none focus:border-red-400"
-               />
-               <button onClick={handleBulkDelete} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-4 py-1.5 rounded transition-colors whitespace-nowrap shadow-sm">
-                 <Trash2 className="w-4 h-4" />
-                 Supprimer toutes les réalisations
-               </button>
+            <div className="rounded-2xl border border-red-200 bg-red-50/80 p-3 sm:p-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-red-600">
+                Suppression annuelle
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="number"
+                  placeholder="Ex: 2023"
+                  value={bulkYear}
+                  onChange={(e) => setBulkYear(e.target.value)}
+                  className="h-11 w-28 rounded-xl border border-red-200 bg-white px-3 text-center text-sm font-bold text-slate-900 outline-none transition placeholder:font-semibold placeholder:text-slate-400 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                />
+                <button
+                  onClick={handleBulkDelete}
+                  className="inline-flex h-11 items-center rounded-xl bg-red-600 px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700"
+                  title="Supprime toutes les realisations publiees pour l'annee indiquee. Action irreversible."
+                  aria-label="Supprimer toutes les realisations d'une annee"
+                >
+                  Suppression par annee
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Table Section */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-700 font-medium">
-              <thead className="text-xs uppercase bg-gray-50 text-gray-500 border-b border-gray-200 font-bold tracking-wider">
+            <table className="w-full text-left text-sm font-medium text-slate-700">
+              <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
                 <tr>
-                  <th scope="col" className="px-6 py-4">Étudiant</th>
-                  <th scope="col" className="px-6 py-4">Titre SAE</th>
-                  <th scope="col" className="px-6 py-4">Promo</th>
-                  <th scope="col" className="px-6 py-4">Matière</th>
-                  <th scope="col" className="px-6 py-4">Date Publication</th>
-                  <th scope="col" className="px-6 py-4 text-center">Note</th>
-                  <th scope="col" className="px-6 py-4">Statut</th>
-                  <th scope="col" className="px-6 py-4 text-right">Actions</th>
+                  <th scope="col" className="px-6 py-4">
+                    Etudiant
+                  </th>
+                  <th scope="col" className="px-6 py-4">
+                    Titre SAE
+                  </th>
+                  <th scope="col" className="px-6 py-4">
+                    Promo
+                  </th>
+                  <th scope="col" className="px-6 py-4">
+                    Matiere
+                  </th>
+                  <th scope="col" className="px-6 py-4">
+                    Date publication
+                  </th>
+                  <th scope="col" className="px-6 py-4 text-center">
+                    Note
+                  </th>
+                  <th scope="col" className="px-6 py-4">
+                    Statut
+                  </th>
+                  <th scope="col" className="px-6 py-4 text-right">
+                    Action
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {displayedRows.length > 0 ? displayedRows.map(row => (
-                  <tr key={row.id} className="hover:bg-blue-50/50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">{row.etudiant}</td>
-                    <td className="px-6 py-4">{row.titre}</td>
-                    <td className="px-6 py-4"><span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold">{row.promo}</span></td>
-                    <td className="px-6 py-4">{row.matiere}</td>
-                    <td className="px-6 py-4 font-mono text-xs">{row.publicationDate}</td>
-                    <td className="px-6 py-4 text-center"><span className="font-black text-blue-700">{row.note}</span><span className="text-gray-400 text-xs">/20</span></td>
-                    <td className="px-6 py-4">
-                      <button 
-                        onClick={() => handleToggleHideStatus(row.id)}
-                        className={`px-3 py-1 text-xs font-bold rounded-full transition-colors ${row.isForceHidden ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
-                        title="Cliquer pour basculer le statut"
-                      >
-                        {row.isForceHidden ? 'CACHÉ (RESTREINT)' : 'PUBLIC'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                       <button onClick={() => setRealizations(prev => prev.filter(r => r.id !== row.id))} className="text-red-400 hover:text-red-700 transition-colors p-1" title="Supprimer définitivement">
-                         <Trash2 className="w-4 h-4" />
-                       </button>
+              <tbody className="divide-y divide-slate-100">
+                {isLoading ? (
+                  <tr>
+                    <td
+                      colSpan="8"
+                      className="px-6 py-12 text-center text-slate-500"
+                    >
+                      Chargement des donnees...
                     </td>
                   </tr>
-                )) : (
+                ) : displayedRows.length > 0 ? (
+                  displayedRows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="transition-colors hover:bg-purple-50/40"
+                    >
+                      <td className="whitespace-nowrap px-6 py-4 font-bold text-slate-900">
+                        {row.etudiant}
+                      </td>
+                      <td className="px-6 py-4">{row.titre}</td>
+                      <td className="px-6 py-4">
+                        <span className="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-700">
+                          {row.promo || "-"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">{row.matiere || "-"}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-slate-500">
+                        {row.publicationDate
+                          ? new Date(row.publicationDate).toLocaleDateString(
+                              "fr-FR",
+                            )
+                          : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {typeof row.note === "number" ? (
+                          <>
+                            <span className="font-black text-purple-700">
+                              {row.note}
+                            </span>
+                            <span className="text-xs text-slate-400">/20</span>
+                          </>
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleToggleHideStatus(row)}
+                          className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+                            row.isForceHidden
+                              ? "bg-red-100 text-red-700 hover:bg-red-200"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
+                          }`}
+                          title="Cliquer pour basculer le statut"
+                        >
+                          {row.isForceHidden ? "CACHE (RESTREINT)" : "PUBLIC"}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleDeleteOne(row.id)}
+                          className="rounded p-1 text-red-400 transition-colors hover:text-red-700"
+                          title="Supprimer definitivement"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
                   <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-gray-500 font-bold">Aucune réalisation trouvée.</td>
+                    <td
+                      colSpan="8"
+                      className="px-6 py-12 text-center font-bold text-slate-500"
+                    >
+                      Aucune realisation trouvee.
+                    </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

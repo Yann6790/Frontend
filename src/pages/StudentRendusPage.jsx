@@ -1,231 +1,323 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { saeService } from '../services/sae.service';
-import { resourcesService } from '../services/resources.service';
+import { Badge } from "@/components/ui/badge";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import IllustratedState from "../components/IllustratedState";
+import { useAuth } from "../context/AuthContext";
+import { resourcesService } from "../services/resources.service";
+import { saeService } from "../services/sae.service";
 
 export default function StudentRendusPage() {
   const { user } = useAuth();
-  
-  const [selectedSemestre, setSelectedSemestre] = useState('Tous');
-  const [selectedMatiere, setSelectedMatiere] = useState('Toutes');
-  
+
+  const [selectedSemestre, setSelectedSemestre] = useState("Tous");
+  const [selectedMatiere, setSelectedMatiere] = useState("Toutes");
+
   const [rendus, setRendus] = useState([]);
-  const [semestersList, setSemestersList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        // 1. Params for getting SAEs applicable to the student
-        const apiParams = {};
-        const promoId = user?.promotion?.id || user?.promotionId || user?.studentProfile?.promotionId;
-        if (promoId) apiParams.promotionId = promoId;
-        
-        const groupId = user?.groupTp || user?.studentProfile?.groupTp;
-        if (groupId) apiParams.groupId = groupId;
+  const loadRendus = useCallback(async () => {
+    setIsLoading(true);
+    setFetchError("");
+    try {
+      // 1. Params for getting SAEs applicable to the student
+      const apiParams = {};
+      const promoId =
+        user?.promotion?.id ||
+        user?.promotionId ||
+        user?.studentProfile?.promotionId;
+      if (promoId) apiParams.promotionId = promoId;
 
-        // 2. Fetch all necessary data concurrently
-        const [saeData, gradesDataRes, semestersRes] = await Promise.all([
-          saeService.getSaeList(apiParams),
-          saeService.getMyGrades().catch(() => ({ data: { data: [] } })), // fallback if not exist
-          resourcesService.getSemesters().catch(() => ({ data: [] }))
-        ]);
-        
-        const allSaes = Array.isArray(saeData) ? saeData : saeData?.data || [];
-        const myGradesArray = Array.isArray(gradesDataRes?.data?.data) 
-                                ? gradesDataRes.data.data 
-                                : [];
-        const sems = Array.isArray(semestersRes) ? semestersRes : semestersRes?.data || [];
-        setSemestersList(sems);
+      const groupId = user?.groupTp || user?.studentProfile?.groupTp;
+      if (groupId) apiParams.groupId = groupId;
 
-        // 3. Keep only SAEs that are marked as submitted by the backend
-        const submittedSaes = allSaes.filter(sae => sae.isSubmitted);
+      // 2. Fetch all necessary data concurrently
+      const [saeData, gradesDataRes, semestersRes] = await Promise.all([
+        saeService.getSaeList(apiParams),
+        saeService.getMyGrades().catch(() => ({ data: { data: [] } })),
+        resourcesService.getSemesters().catch(() => ({ data: [] })),
+      ]);
 
-        // 4. Map the graded items so we can lookup average easily by saeTitle or via some linkage. 
-        // Note: grades data has saeTitle. SAEs have title. Or maybe grades data has saeId! Let's match by title if id fails.
-        const gradesMap = {};
-        myGradesArray.forEach(gradeObj => {
-          if (gradeObj.saeId) {
-            gradesMap[gradeObj.saeId] = gradeObj.average;
-          } else if (gradeObj.saeTitle) {
-            gradesMap[gradeObj.saeTitle] = gradeObj.average;
-          }
-        });
+      const allSaes = Array.isArray(saeData) ? saeData : saeData?.data || [];
+      const myGradesArray = Array.isArray(gradesDataRes?.data?.data)
+        ? gradesDataRes.data.data
+        : [];
+      const sems = Array.isArray(semestersRes)
+        ? semestersRes
+        : semestersRes?.data || [];
 
-        // 5. Build Final array
-        const merged = submittedSaes.map(sae => {
-          let semLabel = "S?";
-          const semObj = sems.find(s => s.id === sae.semesterId);
-          if (semObj) {
-            const num = semObj.number ?? parseInt((semObj.name || semObj.label || '').replace(/\D/g, ''), 10);
-            semLabel = num ? `S${num}` : (semObj.name || semObj.label || "S?");
-          }
+      // 3. Keep only SAEs that are marked as submitted by the backend
+      const submittedSaes = allSaes.filter((sae) => sae.isSubmitted);
 
-          const gradeVal = gradesMap[sae.id] ?? gradesMap[sae.title];
-          
-          return {
-            id: sae.id,
-            titre: sae.title || "SAE Sans Titre",
-            matiere: sae.thematic || "Général",
-            semestre: semLabel,
-            note: gradeVal !== undefined ? gradeVal : "Non noté",
-            // Typically submissions have submittedAt, fallback to SAE's dueDate if we must, 
-            // but ideally we would query the submission itself. We will use the current date or dueDate for fallback.
-            dateDepot: sae.updatedAt || sae.dueDate || new Date().toISOString()
-          };
-        });
+      // 4. Map the graded items so we can lookup average easily by saeTitle or via some linkage.
+      const gradesMap = {};
+      myGradesArray.forEach((gradeObj) => {
+        if (gradeObj.saeId) {
+          gradesMap[gradeObj.saeId] = gradeObj.average;
+        } else if (gradeObj.saeTitle) {
+          gradesMap[gradeObj.saeTitle] = gradeObj.average;
+        }
+      });
 
-        setRendus(merged);
-      } catch (err) {
-         console.error("Erreur lors du chargement des rendus :", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    if (user) {
-      fetchData();
+      // 5. Build Final array
+      const merged = submittedSaes.map((sae) => {
+        let semLabel = "S?";
+        const semObj = sems.find((s) => s.id === sae.semesterId);
+        if (semObj) {
+          const num =
+            semObj.number ??
+            parseInt((semObj.name || semObj.label || "").replace(/\D/g, ""), 10);
+          semLabel = num ? `S${num}` : semObj.name || semObj.label || "S?";
+        }
+
+        const gradeVal = gradesMap[sae.id] ?? gradesMap[sae.title];
+
+        return {
+          id: sae.id,
+          titre: sae.title || "SAE Sans Titre",
+          banniere: sae.banner || "",
+          matiere: sae.thematic || "General",
+          semestre: semLabel,
+          note: gradeVal !== undefined ? gradeVal : "Non note",
+          dateDepot: sae.updatedAt || sae.dueDate || new Date().toISOString(),
+        };
+      });
+
+      setRendus(merged);
+    } catch (err) {
+      console.error("Erreur lors du chargement des rendus :", err);
+      setFetchError(
+        err?.message ||
+          "Impossible de charger vos rendus pour le moment. Veuillez reessayer dans quelques instants.",
+      );
+    } finally {
+      setIsLoading(false);
     }
   }, [user]);
 
-  const allSemestres = ["Tous", ...new Set(rendus.map(r => r.semestre))].sort();
-  const allMatieres = ["Toutes", ...new Set(rendus.map(r => r.matiere))].sort();
+  useEffect(() => {
+    if (user) {
+      loadRendus();
+    }
+  }, [user, loadRendus]);
+
+  const allSemestres = useMemo(
+    () => ["Tous", ...new Set(rendus.map((r) => r.semestre))].sort(),
+    [rendus],
+  );
+
+  const allMatieres = useMemo(
+    () => ["Toutes", ...new Set(rendus.map((r) => r.matiere))].sort(),
+    [rendus],
+  );
 
   const displayedRendus = useMemo(() => {
     let filtered = [...rendus];
 
     if (selectedSemestre !== "Tous") {
-      filtered = filtered.filter(r => r.semestre === selectedSemestre);
-    }
-    
-    if (selectedMatiere !== "Toutes") {
-      filtered = filtered.filter(r => r.matiere === selectedMatiere);
+      filtered = filtered.filter((r) => r.semestre === selectedSemestre);
     }
 
-    // Tri décroissant par défaut (les plus récents en premier)
+    if (selectedMatiere !== "Toutes") {
+      filtered = filtered.filter((r) => r.matiere === selectedMatiere);
+    }
+
+    // Tri decroissant par defaut (les plus recents en premier)
     filtered.sort((a, b) => new Date(b.dateDepot) - new Date(a.dateDepot));
 
     return filtered;
   }, [selectedSemestre, selectedMatiere, rendus]);
 
+  const isApiFetchFail =
+    !!fetchError &&
+    /(failed to fetch|network|fetch)/i.test(fetchError);
+
   return (
-    <div className="flex-1 w-full flex flex-col font-montserrat">
-      
-      {/* En-tête de page (Fond blanc) */}
-      <div className="flex-none w-full bg-white border-b border-gray-100 shadow-sm relative z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <h1 className="text-3xl md:text-4xl font-montserrat font-extrabold text-gray-900 text-center md:text-left">
-            Mes Travaux Rendus
+    <div className="min-h-screen bg-white font-montserrat">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-12 pt-28 sm:px-8">
+        <section className="space-y-2">
+          <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+            Espace etudiant
+          </p>
+          <h1 className="text-4xl font-black tracking-tight text-slate-950">
+            Mes rendus
           </h1>
-          
-          {/* Zone de filtres alignés horizontalement */}
-          <div className="flex flex-wrap md:flex-nowrap items-center gap-4 bg-gray-50/80 p-3 md:p-4 rounded-2xl border border-gray-200">
-            {/* Filtre Semestre */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide hidden sm:block">Semestre</label>
-              <select 
-                value={selectedSemestre} 
+          <p className="text-base text-slate-600">
+            Consultez vos travaux deja remis et leurs evaluations.
+          </p>
+        </section>
+
+        {allSemestres.length > 0 && (
+          <section className="space-y-5">
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-slate-600">
+                Filtrer par semestre :
+              </p>
+              <select
+                value={selectedSemestre}
                 onChange={(e) => setSelectedSemestre(e.target.value)}
-                className="bg-white border font-bold border-gray-300 text-gray-800 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-purple-500 transition-shadow cursor-pointer shadow-sm"
+                className="h-10 w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
               >
-                {allSemestres.map(s => <option key={s} value={s}>{s}</option>)}
+                {allSemestres.map((semestre) => (
+                  <option key={semestre} value={semestre}>
+                    {semestre}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div className="w-px h-8 bg-gray-300 hidden md:block"></div>
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-slate-600">
+                Filtrer par matiere :
+              </p>
+              <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                {allMatieres.map((matiere) => {
+                  const isActive = selectedMatiere === matiere;
 
-            {/* Filtre Matière */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide hidden sm:block">Matière</label>
-              <select 
-                value={selectedMatiere} 
-                onChange={(e) => setSelectedMatiere(e.target.value)}
-                className="bg-white border font-bold border-gray-300 text-gray-800 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-purple-500 transition-shadow cursor-pointer shadow-sm"
-              >
-                {allMatieres.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Zone d'affichage (Fond violet vif) */}
-      <main className="flex-1 w-full bg-purple-700 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto flex flex-col gap-6">
-          
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center text-white gap-4">
-              <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-              <p className="font-bold text-lg">Chargement de vos rendus...</p>
-            </div>
-          ) : displayedRendus.length === 0 ? (
-            <div className="text-center py-20 bg-white/10 rounded-[2rem] border-2 border-dashed border-white/20 backdrop-blur-md">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-white">
-                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                  return (
+                    <button
+                      key={matiere}
+                      type="button"
+                      onClick={() => setSelectedMatiere(matiere)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
+                        isActive
+                          ? "bg-purple-600 text-white"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      }`}
+                    >
+                      {matiere}
+                    </button>
+                  );
+                })}
               </div>
-              <p className="text-white font-bold text-xl">Aucun rendu trouvé pour ces critères.</p>
             </div>
-          ) : (
-            displayedRendus.map((rendu) => (
-              <Link 
-                to={`/sae/${rendu.id}/rendu?mode=view`} 
-                key={rendu.id}
-                className="group flex flex-col sm:flex-row items-center bg-white rounded-[2rem] shadow-xl border-4 border-transparent hover:border-purple-300/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 overflow-hidden p-6 sm:p-8 gap-6 w-full relative"
-              >
-                {/* Effet visuel hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-50/0 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
-                {/* Infos à gauche */}
-                <div className="flex-1 w-full flex flex-col gap-3 relative z-10">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="bg-purple-100 text-purple-800 text-xs font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
-                      {rendu.semestre}
-                    </span>
-                    <span className="bg-gray-100 text-gray-600 text-xs font-extrabold px-3.5 py-1.5 rounded-full shadow-sm">
-                      {rendu.matiere}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-2xl font-black font-montserrat text-gray-900 group-hover:text-purple-700 transition-colors mt-1">
-                    {rendu.titre}
-                  </h3>
-                  
-                  <div className="flex items-center gap-2 mt-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <p className="text-sm font-bold text-gray-500">
-                      Déposé ou échéance le {new Date(rendu.dateDepot).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Note à droite */}
-                <div className="flex-none flex items-center justify-center shrink-0 w-full sm:w-auto mt-4 sm:mt-0 relative z-10 border-t sm:border-t-0 sm:border-l border-gray-100 pt-6 sm:pt-0 sm:pl-8">
-                  <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full flex flex-col items-center justify-center border-4 shadow-md transform group-hover:rotate-3 transition-transform ${
-                    rendu.note === "Non noté" 
-                      ? "bg-gray-50 border-gray-200 text-gray-400" 
-                      : (rendu.note >= 10 ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-600")
-                  }`}>
-                    {rendu.note === "Non noté" ? (
-                      <span className="text-xs font-black uppercase text-center leading-tight">En<br/>Attente</span>
-                    ) : (
-                      <div className="flex items-baseline">
-                        <span className="text-3xl sm:text-4xl font-black font-montserrat leading-none tracking-tighter">{rendu.note}</span>
-                        <span className="text-sm font-bold opacity-60 ml-0.5">/20</span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Icône flèche pour inciter au clic */}
-                  <div className="hidden sm:flex text-gray-300 group-hover:text-purple-600 transition-colors ml-6">
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                  </div>
-                </div>
-              </Link>
-            ))
-          )}
+          </section>
+        )}
 
-        </div>
+        {isLoading ? (
+          <IllustratedState
+            imageSrc="/images/undraw_completing_3pe7.svg"
+            imageAlt="Chargement des rendus"
+            title="Chargement des rendus"
+            description="Nous recuperons vos depots et vos evaluations."
+            className="min-h-72"
+          />
+        ) : fetchError ? (
+          <IllustratedState
+            imageSrc="/images/undraw_completing_3pe7.svg"
+            imageAlt="Erreur de chargement des rendus"
+            title={
+              isApiFetchFail
+                ? "Echec de connexion a l'API"
+                : "Erreur de chargement"
+            }
+            description={
+              isApiFetchFail
+                ? "La connexion au serveur a echoue. Verifiez le reseau puis reessayez."
+                : "Impossible de charger vos rendus pour le moment."
+            }
+            action={
+              <button
+                type="button"
+                onClick={loadRendus}
+                className="inline-flex h-9 items-center rounded-lg bg-purple-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-purple-700"
+              >
+                Reessayer
+              </button>
+            }
+          />
+        ) : (
+          <section className="grid grid-cols-1 gap-6">
+            {displayedRendus.length === 0 &&
+              (rendus.length === 0 ? (
+                <IllustratedState
+                  imageSrc="/images/undraw_completing_3pe7.svg"
+                  imageAlt="Aucun rendu"
+                  title="Aucun rendu"
+                  description="Vous n'avez pas encore de rendu disponible."
+                />
+              ) : (
+                <IllustratedState
+                  imageSrc="/images/undraw_completing_3pe7.svg"
+                  imageAlt="Aucun rendu pour ces filtres"
+                  title="Aucun rendu pour ces filtres"
+                  description="Essayez un autre semestre ou une autre matiere."
+                />
+              ))}
+
+            {displayedRendus.map((rendu) => {
+                const noteValue = Number(rendu.note);
+                const hasGrade =
+                  rendu.note !== "Non note" && !Number.isNaN(noteValue);
+
+                return (
+                  <Link
+                    to={`/sae/${rendu.id}/rendu?mode=view`}
+                    key={rendu.id}
+                    className="group block"
+                  >
+                    <article className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm">
+                      {rendu.banniere && (
+                        <div className="mb-5 h-36 overflow-hidden rounded-xl bg-slate-100">
+                          <img
+                            src={rendu.banniere}
+                            alt={rendu.titre}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex flex-wrap gap-2">
+                          <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">
+                            {rendu.semestre}
+                          </Badge>
+                          <Badge variant="outline" className="text-slate-700">
+                            {rendu.matiere}
+                          </Badge>
+                        </div>
+
+                        {hasGrade ? (
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              noteValue >= 10
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            Note : {noteValue}/20
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                            En attente de note
+                          </span>
+                        )}
+                      </div>
+
+                      <h2 className="mb-2 text-2xl font-medium tracking-tight text-slate-950 group-hover:text-purple-600">
+                        {rendu.titre}
+                      </h2>
+
+                      <p className="mb-5 text-sm text-slate-600">
+                        Depose ou echeance le{" "}
+                        {new Date(rendu.dateDepot).toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+
+                      <div className="flex items-center justify-end border-t border-slate-100 pt-4">
+                        <span className="inline-flex h-9 items-center rounded-lg bg-purple-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-purple-700">
+                          Voir le rendu
+                        </span>
+                      </div>
+                    </article>
+                  </Link>
+                );
+              })}
+          </section>
+        )}
       </main>
     </div>
   );

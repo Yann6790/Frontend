@@ -1,39 +1,59 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { UploadCloud, X, FileText, Image as ImageIcon, CheckCircle2, ChevronLeft } from 'lucide-react';
-import { saeService } from '../services/sae.service';
-import { resourcesService } from '../services/resources.service';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  FileText,
+  Image as ImageIcon,
+  UploadCloud,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { resourcesService } from "../services/resources.service";
+import { saeService } from "../services/sae.service";
 
 export default function StudentSaeSubmissionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const forcedReadOnly = searchParams.get('mode') === 'view';
+  const forcedReadOnly = searchParams.get("mode") === "view";
 
   // ── États page ──
   const [isLoading, setIsLoading] = useState(true);
   const [isReadOnly, setIsReadOnly] = useState(forcedReadOnly);
   const [existingSubmission, setExistingSubmission] = useState(null);
-  const [saeTitle, setSaeTitle] = useState('');
+  const [saeTitle, setSaeTitle] = useState("");
+  const [saeBanner, setSaeBanner] = useState("");
 
   // ── États formulaire ──
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
 
   // ── Fichier principal ──
-  const [selectedFile, setSelectedFile] = useState(null);   // File object
+  const [selectedFile, setSelectedFile] = useState(null); // File object
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
   // ── Image de couverture ──
-  const [imageFile, setImageFile] = useState(null);         // File object
+  const [imageFile, setImageFile] = useState(null); // File object
   const [imagePreview, setImagePreview] = useState(null);
   const imageInputRef = useRef(null);
 
   // ── Soumission ──
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // ────────────────────────────────────────────────────────────
   // Chargement initial
@@ -45,8 +65,12 @@ export default function StudentSaeSubmissionPage() {
         // Charger le titre de la SAE
         try {
           const saeRes = await saeService.getSaeById(id);
-          setSaeTitle((saeRes?.data || saeRes)?.title || '');
-        } catch { /* ignore */ }
+          const saeData = saeRes?.data || saeRes;
+          setSaeTitle(saeData?.title || "");
+          setSaeBanner(saeData?.banner || "");
+        } catch {
+          /* ignore */
+        }
 
         // Vérifier si l'étudiant a déjà soumis
         try {
@@ -55,7 +79,7 @@ export default function StudentSaeSubmissionPage() {
           if (subData && subData.id) {
             setExistingSubmission(subData);
             setIsReadOnly(true);
-            setDescription(subData.description || '');
+            setDescription(subData.description || "");
             setIsPublic(subData.isPublic ?? false);
             setImagePreview(subData.imageUrl || null);
           }
@@ -77,7 +101,10 @@ export default function StudentSaeSubmissionPage() {
     e.preventDefault();
     if (!isReadOnly) setIsDragging(true);
   };
-  const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
@@ -103,15 +130,18 @@ export default function StudentSaeSubmissionPage() {
   // ────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedFile) { setError('Veuillez sélectionner un fichier à soumettre.'); return; }
-    setError('');
+    if (!selectedFile) {
+      setError("Veuillez sélectionner un fichier à soumettre.");
+      return;
+    }
+    setError("");
     setIsSubmitting(true);
     try {
       // Étape 1 : Upload du fichier principal
       const formDataFile = new FormData();
-      formDataFile.append('file', selectedFile);
-      formDataFile.append('saeId', id);
-      formDataFile.append('description', description);
+      formDataFile.append("file", selectedFile);
+      formDataFile.append("saeId", id);
+      formDataFile.append("description", description);
       const uploadRes = await saeService.uploadSaeResource(formDataFile);
       const fileUrl = uploadRes?.url || uploadRes?.data?.url;
       if (!fileUrl) throw new Error("L'URL du fichier uploadé est manquante.");
@@ -137,10 +167,10 @@ export default function StudentSaeSubmissionPage() {
       setExistingSubmission(subData);
       setIsReadOnly(true);
       setImagePreview(subData?.imageUrl || imagePreview);
-      alert('✅ Votre rendu a été soumis avec succès !');
+      alert("✅ Votre rendu a été soumis avec succès !");
     } catch (err) {
-      console.error('[Submission] Erreur:', err);
-      setError(err.message || 'Une erreur est survenue lors de la soumission.');
+      console.error("[Submission] Erreur:", err);
+      setError(err.message || "Une erreur est survenue lors de la soumission.");
     } finally {
       setIsSubmitting(false);
     }
@@ -155,9 +185,9 @@ export default function StudentSaeSubmissionPage() {
       const newVal = !isPublic;
       await saeService.updateMySubmissionVisibility(id, newVal);
       setIsPublic(newVal);
-      setExistingSubmission(prev => ({ ...prev, isPublic: newVal }));
+      setExistingSubmission((prev) => ({ ...prev, isPublic: newVal }));
     } catch (err) {
-      alert(err.message || 'Erreur lors du changement de visibilité.');
+      alert(err.message || "Erreur lors du changement de visibilité.");
     } finally {
       setIsTogglingVisibility(false);
     }
@@ -168,90 +198,115 @@ export default function StudentSaeSubmissionPage() {
   // ────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-[#A3477F] rounded-full animate-spin" />
+      <div className="flex h-screen w-full items-center justify-center bg-white">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-purple-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 py-10 px-4 md:px-8 font-montserrat">
-      <div className="max-w-4xl mx-auto flex flex-col gap-8">
+    <div className="w-full min-h-screen bg-white font-montserrat flex flex-col">
+      {saeBanner && (
+        <div className="w-full h-80 overflow-hidden bg-slate-100">
+          <img
+            src={saeBanner}
+            alt={saeTitle || `SAE ${id}`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
-        {/* En-tête */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-          <div className="flex items-center gap-3">
-            <Link
-              to={`/sae/${id}`}
-              className="p-2 bg-white border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-full transition-colors"
-              title="Retour à la SAE"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <div className="inline-block px-3 py-1 bg-[#A3477F]/10 rounded-lg mb-1">
-                <span className="text-sm font-bold text-[#A3477F] uppercase tracking-wider">
-                  {saeTitle || `SAE ${id}`}
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-                {isReadOnly ? 'Mon rendu' : 'Déposer mon rendu'}
-              </h1>
-            </div>
-          </div>
+      <main className="flex-1 mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-12 sm:px-8 pt-28">
+        <Link
+          to="/student-dashboard"
+          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold w-fit"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Retour au dashboard
+        </Link>
 
-          {/* Badge statut */}
-          {isReadOnly && existingSubmission && (
-            <div className="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 px-4 py-2 rounded-xl">
-              <CheckCircle2 className="w-5 h-5" />
-              <span className="font-bold text-sm">Soumis le {new Date(existingSubmission.submittedAt).toLocaleDateString('fr-FR')}</span>
-            </div>
-          )}
+        <div className="space-y-2">
+          <h1 className="text-4xl font-black tracking-tight text-slate-950">
+            {saeTitle || `SAE ${id}`}
+          </h1>
+          <p className="text-base text-slate-600">
+            {isReadOnly ? "Mon rendu" : "Déposer mon rendu"}
+          </p>
         </div>
 
+        {/* Badge statut */}
+        {isReadOnly && existingSubmission && (
+          <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-lg">
+            <CheckCircle2 className="w-4 h-4" />
+            <span className="text-xs font-semibold">
+              Soumis le{" "}
+              {new Date(existingSubmission.submittedAt).toLocaleDateString(
+                "fr-FR",
+              )}
+            </span>
+          </div>
+        )}
+
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 font-medium px-5 py-3 rounded-xl text-sm">
+          <div className="bg-red-50 text-red-700 font-medium px-3 py-2 rounded-lg text-xs">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-6 w-full max-w-6xl"
+        >
           {/* Description */}
-          <section className="bg-white rounded-3xl p-8 lg:p-10 shadow-sm border border-gray-100 flex flex-col gap-6">
-
-            <div className="flex flex-col gap-2">
-              <label htmlFor="description" className="font-bold text-gray-800 text-lg flex justify-between">
-                <span>Description de votre travail</span>
-                <span className="text-gray-400 font-normal text-sm">(Facultatif)</span>
-              </label>
+          <Card className="ring-0 shadow-none">
+            <CardHeader>
+              <CardTitle className="flex justify-between">
+                <span>Description</span>
+                <span className="text-xs font-normal text-slate-500">
+                  (Facultatif)
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <textarea
-                id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={isReadOnly}
-                placeholder="Expliquez votre démarche, les outils utilisés, les difficultés rencontrées..."
-                className={`w-full min-h-[120px] p-4 border-2 rounded-xl transition-all duration-200 resize-y outline-none
-                  ${isReadOnly
-                    ? 'bg-gray-50 border-transparent text-gray-700 cursor-default'
-                    : 'bg-white border-gray-200 focus:border-[#A3477F] focus:ring-4 focus:ring-[#A3477F]/10'}`}
+                placeholder="Expliquez votre démarche, les outils utilisés..."
+                className={`w-full min-h-24 p-2.5 rounded-lg text-sm transition-all resize-y outline-none
+                  ${
+                    isReadOnly
+                      ? "bg-slate-50 text-slate-700 cursor-default"
+                      : "bg-slate-50 focus-visible:ring-0"
+                  }`}
               />
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Image de couverture */}
-            <div className="flex flex-col gap-3">
-              <label className="font-bold text-gray-800 text-lg">Image de couverture</label>
+          {/* Image de couverture */}
+          <Card className="ring-0 shadow-none">
+            <CardHeader>
+              <CardTitle>Image de couverture</CardTitle>
+            </CardHeader>
+            <CardContent>
               {imagePreview ? (
-                <div className="relative group rounded-2xl overflow-hidden border-2 border-gray-100 w-full max-w-sm">
-                  <img src={imagePreview} alt="Aperçu" className="w-full h-auto object-cover aspect-video" />
+                <div className="relative group rounded-lg overflow-hidden w-full">
+                  <img
+                    src={imagePreview}
+                    alt="Aperçu"
+                    className="w-full h-auto object-cover aspect-video"
+                  />
                   {!isReadOnly && (
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                       <button
                         type="button"
-                        onClick={() => { setImagePreview(null); setImageFile(null); }}
-                        className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
+                        onClick={() => {
+                          setImagePreview(null);
+                          setImageFile(null);
+                        }}
+                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
                       >
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   )}
@@ -259,140 +314,171 @@ export default function StudentSaeSubmissionPage() {
               ) : !isReadOnly ? (
                 <div
                   onClick={() => imageInputRef.current?.click()}
-                  className="w-full max-w-sm aspect-video border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center gap-3 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group"
+                  className="w-full aspect-video rounded-lg flex flex-col items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors group"
                 >
-                  <div className="p-4 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                    <ImageIcon className="w-8 h-8 text-gray-400 group-hover:text-[#A3477F]" />
-                  </div>
-                  <span className="font-semibold text-gray-500">Ajouter une image</span>
-                  <input type="file" ref={imageInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
+                  <ImageIcon className="w-6 h-6 text-slate-400 group-hover:text-purple-600" />
+                  <span className="text-sm font-medium text-slate-600">
+                    Ajouter une image
+                  </span>
+                  <input
+                    type="file"
+                    ref={imageInputRef}
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
                 </div>
               ) : (
-                <p className="text-gray-400 italic text-sm">Aucune image fournie.</p>
+                <p className="text-slate-500 text-sm">Aucune image fournie.</p>
               )}
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
           {/* Fichier principal */}
-          <section className="bg-white rounded-3xl p-8 lg:p-10 shadow-sm border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">Fichier à soumettre</h2>
-
-            {!isReadOnly && (
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`w-full p-10 mb-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-300
-                  ${isDragging ? 'border-[#A3477F] bg-[#A3477F]/5' : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-[#A3477F]/50'}`}
-              >
-                <div className={`p-5 rounded-full shadow-sm transition-transform duration-300 ${isDragging ? 'bg-[#A3477F] text-white scale-110' : 'bg-white text-[#A3477F]'}`}>
-                  <UploadCloud className="w-10 h-10" />
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-800 mb-1">Glissez et déposez votre fichier ici</p>
-                  <p className="text-gray-500">ou cliquez pour parcourir</p>
-                </div>
-                <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && setSelectedFile(e.target.files[0])} className="hidden" />
-              </div>
-            )}
-
-            {/* Fichier sélectionné ou soumis */}
-            {(selectedFile || (isReadOnly && existingSubmission)) && (
-              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm group">
-                <div className="flex items-center gap-4 overflow-hidden">
-                  <div className="p-2.5 bg-[#A3477F]/10 rounded-lg text-[#A3477F]">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div className="flex flex-col truncate">
-                    <span className="font-semibold text-gray-800 truncate">
-                      {selectedFile?.name || existingSubmission?.fileName || 'Fichier soumis'}
-                    </span>
-                    {isReadOnly && existingSubmission?.url && (
-                      <a href={existingSubmission.url} target="_blank" rel="noreferrer" className="text-xs text-[#A3477F] hover:underline mt-0.5">
-                        Télécharger
-                      </a>
-                    )}
-                  </div>
-                </div>
-                {!isReadOnly ? (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFile(null)}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-4 shrink-0"
+          <Card className="ring-0 shadow-none">
+            <CardHeader>
+              <CardTitle>Fichier à soumettre</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!isReadOnly && (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`w-full p-6 rounded-lg flex flex-col items-center justify-center gap-3 cursor-pointer transition-all
+                    ${isDragging ? "bg-purple-50" : "bg-slate-50 hover:bg-slate-100"}`}
+                >
+                  <div
+                    className={`p-3 rounded-full transition-transform ${isDragging ? "bg-purple-600 text-white scale-110" : "bg-white text-purple-600"}`}
                   >
-                    <X className="w-5 h-5" />
-                  </button>
-                ) : (
-                  <span className="text-sm font-bold text-[#A3477F] bg-[#A3477F]/10 px-3 py-1.5 rounded-lg shrink-0">Soumis</span>
-                )}
-              </div>
-            )}
+                    <UploadCloud className="w-6 h-6" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-semibold text-slate-900 text-sm">
+                      Glissez et déposez votre fichier
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      ou cliquez pour parcourir
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) =>
+                      e.target.files?.[0] && setSelectedFile(e.target.files[0])
+                    }
+                    className="hidden"
+                  />
+                </div>
+              )}
 
-            {!isReadOnly && !selectedFile && (
-              <p className="text-sm text-gray-400 italic mt-2">Aucun fichier sélectionné.</p>
-            )}
-          </section>
+              {/* Fichier sélectionné ou soumis */}
+              {(selectedFile || (isReadOnly && existingSubmission)) && (
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="p-2 bg-purple-100 rounded-md text-purple-700">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col truncate min-w-0">
+                      <span className="font-medium text-slate-900 truncate text-sm">
+                        {selectedFile?.name ||
+                          existingSubmission?.fileName ||
+                          "Fichier soumis"}
+                      </span>
+                      {isReadOnly && existingSubmission?.url && (
+                        <a
+                          href={existingSubmission.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-purple-600 hover:underline"
+                        >
+                          Télécharger
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {!isReadOnly && !selectedFile && (
+                <p className="text-xs text-slate-500">
+                  Aucun fichier sélectionné.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Visibilité */}
-          <section
-            className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-gray-100 flex items-start gap-4 hover:border-[#A3477F]/30 transition-colors group"
-            style={{ cursor: isReadOnly ? 'default' : 'pointer' }}
-          >
-            <div className="pt-1">
-              <div className="relative flex items-center justify-center w-7 h-7">
-                <input
-                  type="checkbox"
-                  id="public"
-                  checked={isPublic}
-                  onChange={isReadOnly ? handleToggleVisibility : (e) => setIsPublic(e.target.checked)}
-                  disabled={isTogglingVisibility}
-                  className="peer appearance-none w-7 h-7 border-2 border-gray-300 rounded-md checked:bg-[#A3477F] checked:border-[#A3477F] transition-all cursor-pointer focus:ring-4 focus:ring-[#A3477F]/20 disabled:opacity-50"
-                />
-                <CheckCircle2 className="w-5 h-5 text-white absolute pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+          <Card className="ring-0 shadow-none cursor-pointer">
+            <CardContent className="pt-4">
+              <div className="flex items-start gap-3">
+                <div className="pt-0.5">
+                  <input
+                    type="checkbox"
+                    id="public"
+                    checked={isPublic}
+                    onChange={
+                      isReadOnly
+                        ? handleToggleVisibility
+                        : (e) => setIsPublic(e.target.checked)
+                    }
+                    disabled={isTogglingVisibility}
+                    className="w-5 h-5 rounded cursor-pointer"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <label
+                    htmlFor="public"
+                    className="font-semibold text-slate-900 text-sm cursor-pointer"
+                  >
+                    Rendre ce projet public
+                  </label>
+                  <p className="text-slate-600 text-xs leading-relaxed">
+                    Visible par tous les utilisateurs dans la galerie.{" "}
+                    {isReadOnly ? "Modifiable à tout moment." : ""}
+                  </p>
+                  {isTogglingVisibility && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      Mise à jour...
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="public" className="text-xl font-bold text-gray-800 cursor-pointer group-hover:text-[#A3477F] transition-colors">
-                Rendre ce projet public dans la galerie
-              </label>
-              <p className="text-gray-500 leading-relaxed">
-                En cochant cette case, votre travail sera visible par tous les utilisateurs dans la section "Galerie".{' '}
-                {isReadOnly ? (
-                  <span className="text-[#A3477F] font-semibold">Vous pouvez modifier ce choix à tout moment.</span>
-                ) : (
-                  'Vous pourrez modifier ce choix après la soumission.'
-                )}
-              </p>
-              {isTogglingVisibility && <p className="text-sm text-gray-400 mt-1">Mise à jour en cours...</p>}
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
-          {/* Bouton soumettre (seulement si pas encore soumis) */}
+          {/* Bouton soumettre */}
           {!isReadOnly && (
-            <div className="mb-16 flex flex-col sm:flex-row justify-end gap-3">
-              <button
-                type="submit"
-                disabled={isSubmitting || !selectedFile}
-                className="py-4 px-10 bg-[#A3477F] hover:bg-[#8e3e6f] disabled:opacity-50 disabled:hover:bg-[#A3477F] text-white font-black rounded-2xl shadow-[0_8px_20px_0_rgba(163,71,127,0.3)] hover:shadow-[0_12px_25px_rgba(163,71,127,0.4)] hover:-translate-y-1 active:translate-y-0 transition-all duration-200 text-xl tracking-wide flex items-center justify-center gap-3"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Envoi en cours...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Confirmer le rendu</span>
-                    <CheckCircle2 className="w-6 h-6" />
-                  </>
-                )}
-              </button>
-            </div>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !selectedFile}
+              className="w-full h-9"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  <span>Envoi en cours...</span>
+                </>
+              ) : (
+                <>
+                  <span>Confirmer le rendu</span>
+                  <CheckCircle2 className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
           )}
         </form>
-
-      </div>
+      </main>
     </div>
   );
 }
