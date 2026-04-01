@@ -1,9 +1,0 @@
-
-C:\Users\all1y\Desktop\Sae_mmi\frontend\src\pages\StudentAnnouncementsPage.jsx
-  3:8  error  'mmiLogo' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
-
-C:\Users\all1y\Desktop\Sae_mmi\frontend\src\pages\StudentGalleryPage.jsx
-  4:8  error  'mmiLogo' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
-
-✖ 2 problems (2 errors, 0 warnings)
-
