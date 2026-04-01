@@ -53,5 +53,18 @@ export const adminService = {
       body: JSON.stringify(data)
     });
     return res.data || res;
+  },
+
+  /**
+   * Modifier la visibilité de TOUTES les soumissions d'une promotion (Endpoint 34)
+   * PATCH /api/promotions/:promotionId/submissions/visibility
+   * ROLE: ADMIN
+   */
+  async updatePromotionSubmissionsVisibility(promotionId, isPublic) {
+    const res = await apiClient(`/api/promotions/${promotionId}/submissions/visibility`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isPublic })
+    });
+    return res.data || res;
   }
 };

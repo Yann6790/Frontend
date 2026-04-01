@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  X, ExternalLink, User, Calendar, Tag, ChevronDown, Search, 
+  Filter, MoreVertical, Trash2, Eye, Download, FileText
+} from 'lucide-react';
 
 import { saeService } from '../services/sae.service';
 
@@ -12,6 +16,7 @@ export default function SharedGallery({ canModerate = false, isAdminView = false
   const [sortNote, setSortNote] = useState(null); // 'asc' | 'desc' | null
   const [selectedMatieres, setSelectedMatieres] = useState([]);
   const [selectedPromos, setSelectedPromos] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
   const [isMatiereMenuOpen, setIsMatiereMenuOpen] = useState(false);
@@ -24,9 +29,8 @@ export default function SharedGallery({ canModerate = false, isAdminView = false
     const fetchProjects = async () => {
       setIsLoading(true);
       try {
-        const res = await saeService.getArchives();
-        const data = Array.isArray(res) ? res : (res?.data || []);
-        setProjects(data);
+        const data = await saeService.getAllPublicSubmissions();
+        setProjects(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Erreur chargement galerie", err);
       } finally {
@@ -224,16 +228,20 @@ export default function SharedGallery({ canModerate = false, isAdminView = false
         ) : displayedProjects.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {displayedProjects.map(project => (
-              <div key={project.id} className="bg-white relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 duration-300 flex flex-col group border border-gray-100 hover:border-purple-300">
+              <div 
+                key={project.id} 
+                onClick={() => setSelectedProject(project)}
+                className="bg-white relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 duration-300 flex flex-col group border border-gray-100 hover:border-purple-300 cursor-pointer"
+              >
                 
                 {/* Modération (Croix de suppression) */}
                 {canModerate && (
                   <button 
-                    onClick={() => onDelete(project.id)}
+                    onClick={(e) => { e.stopPropagation(); onDelete(project.id); }}
                     className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-red-500 hover:text-white backdrop-blur-md rounded-full text-red-500 shadow-sm border border-red-100 transition-all scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
                     title="Supprimer la réalisation"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 )}
 
@@ -246,56 +254,52 @@ export default function SharedGallery({ canModerate = false, isAdminView = false
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
-                       <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                       <FileText className="w-12 h-12" strokeWidth={1} />
                     </div>
                   )}
-                  {/* Notes enlevées car l'API archive ne les fournit pas, on affiche l'année */}
                   {project.year && (
-                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-black text-purple-800 shadow-sm">
+                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-lg text-[10px] font-black text-purple-800 shadow-sm border border-purple-100 uppercase tracking-widest">
                       {project.year}
                     </div>
                   )}
                 </div>
 
                 <div className="p-5 flex flex-col flex-1">
-                  <h3 className="text-xl font-montserrat font-semibold text-gray-900 leading-tight mb-2 line-clamp-2" title={project.title}>
+                  <h3 className="text-lg font-montserrat font-bold text-gray-900 leading-tight mb-2 line-clamp-2 min-h-[3rem]" title={project.title}>
                     {project.title || 'Sans titre'}
                   </h3>
 
                   {project.name ? (
-                     <div className="flex items-center gap-2 mb-3">
-                       <div className="w-6 h-6 rounded-md bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-                         <span className="text-[10px] font-black">{(project.name.firstname?.[0] || '') + (project.name.lastname?.[0] || '')}</span>
+                     <div className="flex items-center gap-2 mb-4">
+                       <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
+                         <span className="text-[10px] font-black uppercase">{(project.name.firstname?.[0] || '') + (project.name.lastname?.[0] || '')}</span>
                        </div>
-                       <p className="text-gray-600 font-medium text-sm truncate">
+                       <p className="text-gray-600 font-bold text-xs truncate">
                          {project.name.firstname} {project.name.lastname}
                        </p>
                      </div>
                   ) : (
-                     <div className="mb-3 text-sm text-gray-400">—</div>
+                     <div className="mb-4 text-xs text-gray-300 font-bold italic tracking-wider">Auteur anonyme</div>
                   )}
 
                   {project.description && (
-                     <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                     <p className="text-xs text-gray-500 font-medium line-clamp-2 mb-4 leading-relaxed">
                        {project.description}
                      </p>
                   )}
 
-                  <div className="mt-auto space-y-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
                     <div className="flex flex-wrap gap-2">
                        {project.thematic && (
-                         <span className="bg-purple-50 text-purple-700 text-xs font-bold px-2.5 py-1 rounded-md border border-purple-100">
+                         <span className="bg-purple-50 text-purple-600 text-[10px] font-black uppercase px-2 py-1 rounded-md border border-purple-100 tracking-tighter">
                            {project.thematic}
                          </span>
                        )}
                     </div>
 
-                    {project.url && (
-                        <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold uppercase text-purple-600 hover:text-purple-800 flex items-center gap-1 transition-colors">
-                            Voir
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                        </a>
-                    )}
+                    <div className="flex items-center gap-1.5 text-purple-600 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                      Explorer <ChevronDown className="w-3 h-3 -rotate-90" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -307,6 +311,114 @@ export default function SharedGallery({ canModerate = false, isAdminView = false
           </div>
         )}
       </div>
+
+      {/* ── Modal de Détails du Projet ── */}
+      {selectedProject && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row animate-in zoom-in-95 duration-300 ring-1 ring-black/5">
+            
+            {/* Partie Gauche : Image / Aperçu */}
+            <div className="md:w-3/5 bg-gray-50 relative flex items-center justify-center overflow-hidden min-h-[300px]">
+              {selectedProject.imageUrl ? (
+                <img 
+                  src={selectedProject.imageUrl} 
+                  alt={selectedProject.title} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-4 text-gray-300">
+                  <FileText className="w-24 h-24" strokeWidth={0.5} />
+                  <span className="font-black text-xs uppercase tracking-widest">Aperçu non disponible</span>
+                </div>
+              )}
+              
+              {/* Badge Année */}
+              {selectedProject.year && (
+                <div className="absolute top-6 left-6 px-4 py-2 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-white/20 text-xs font-black text-purple-900 uppercase tracking-widest">
+                  Promotion {selectedProject.year}
+                </div>
+              )}
+              
+              <button 
+                onClick={() => setSelectedProject(null)}
+                className="absolute top-6 right-6 md:hidden p-3 bg-white/90 rounded-full shadow-lg text-gray-900"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Partie Droite : Infos */}
+            <div className="md:w-2/5 p-8 lg:p-12 flex flex-col h-full bg-white relative overflow-y-auto">
+              <button 
+                onClick={() => setSelectedProject(null)}
+                className="hidden md:flex absolute top-8 right-8 p-3 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="flex flex-col gap-8">
+                {/* Header Infos */}
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProject.thematic && (
+                      <span className="flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-black uppercase rounded-lg border border-purple-100">
+                        <Tag className="w-3 h-3" /> {selectedProject.thematic}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-3xl font-montserrat font-black text-gray-900 tracking-tight leading-tight">
+                    {selectedProject.title || 'Projet Sans Titre'}
+                  </h2>
+                  
+                  {selectedProject.name && (
+                    <div className="flex items-center gap-3 pt-2">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center text-white shadow-md">
+                        <span className="font-black">{(selectedProject.name.firstname?.[0] || '') + (selectedProject.name.lastname?.[0] || '')}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Réalisé par</span>
+                        <p className="font-bold text-gray-900">{selectedProject.name.firstname} {selectedProject.name.lastname}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FileText className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest underline decoration-purple-300 decoration-2 underline-offset-4">Description du projet</span>
+                  </div>
+                  <p className="text-gray-600 leading-relaxed font-medium">
+                    {selectedProject.description || "Aucune description détaillée n'a été fournie pour ce projet."}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="pt-6 mt-auto border-t border-gray-100 flex flex-col gap-4">
+                  {selectedProject.url ? (
+                    <a 
+                      href={selectedProject.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 py-4 px-8 bg-purple-700 hover:bg-purple-800 text-white font-black rounded-2xl shadow-xl shadow-purple-200 transition-all hover:-translate-y-1 active:scale-95"
+                    >
+                      Explorer le rendu <ExternalLink className="w-5 h-5" />
+                    </a>
+                  ) : (
+                    <div className="py-4 px-8 bg-gray-100 text-gray-400 font-bold text-center rounded-2xl border border-gray-200">
+                      Lien non disponible
+                    </div>
+                  )}
+                  <p className="text-[10px] text-center text-gray-400 font-medium">
+                    Cliquez sur le bouton ci-dessus pour ouvrir le projet dans un nouvel onglet.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

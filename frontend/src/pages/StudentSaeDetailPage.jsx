@@ -34,9 +34,14 @@ export default function StudentSaeDetailPage() {
         setDocumentsList(Array.isArray(docsRes) ? docsRes : docsRes?.data || []);
         
         const ms = Array.isArray(milestonesRes) ? milestonesRes : milestonesRes?.data || [];
-        setMilestonesList(ms.sort((a,b) => new Date(a.deadline) - new Date(b.deadline)));
+        setMilestonesList(ms.sort((a,b) => (a.position ?? 999) - (b.position ?? 999)));
         
-        setMyProgress(Array.isArray(progressRes) ? progressRes : progressRes?.data || []);
+        // L'API (endpoint 57) retourne : { milestones: [{ milestone: {id, title}, progress: {...} }] }
+        // On normalise en un tableau indexé par milestoneId pour accès facile
+        const rawProgress = progressRes?.data || progressRes;
+        const milestoneProgressArr = rawProgress?.milestones || (Array.isArray(rawProgress) ? rawProgress : []);
+        setMyProgress(milestoneProgressArr);
+
         setAnnouncements(Array.isArray(announcementsRes) ? announcementsRes : announcementsRes?.data || []);
 
         // Charger le rendu séparément (peut échouer avec 404 si pas encore soumis)
@@ -73,6 +78,18 @@ export default function StudentSaeDetailPage() {
     return diffDays > 0 ? diffDays : 0;
   };
 
+  // Trouve la progression d'un palier donné depuis le tableau normalisé
+  // Supporte { milestone: {id}, progress: {...} } ET { milestoneId, isReached, ... }
+  const getMilestoneProgress = (milestoneId) => {
+    for (const entry of myProgress) {
+      // Format endpoint 57 : { milestone: { id }, progress: { isReached, ... } }
+      if (entry?.milestone?.id === milestoneId) return entry.progress ?? null;
+      // Format plat alternatif
+      if (entry?.milestoneId === milestoneId) return entry;
+    }
+    return null;
+  };
+
   const handlePhaseSubmit = async (milestoneId) => {
     try {
       setIsSubmitting(prev => ({...prev, [milestoneId]: true}));
@@ -81,13 +98,15 @@ export default function StudentSaeDetailPage() {
         isReached: true,
         message: message
       });
+      // Recharger la progression
       const progressRes = await saeService.getMyMilestoneProgress(id);
-      setMyProgress(Array.isArray(progressRes) ? progressRes : progressRes?.data || []);
-      alert("Journal de bord soumis avec succès !");
+      const rawProgress = progressRes?.data || progressRes;
+      const milestoneProgressArr = rawProgress?.milestones || (Array.isArray(rawProgress) ? rawProgress : []);
+      setMyProgress(milestoneProgressArr);
       setPhaseInput(prev => ({...prev, [milestoneId]: ""}));
     } catch (error) {
        console.error("Erreur de soumission", error);
-       alert("Erreur de soumission");
+       alert("Erreur de soumission. Veuillez réessayer.");
     } finally {
       setIsSubmitting(prev => ({...prev, [milestoneId]: false}));
     }
@@ -106,9 +125,9 @@ export default function StudentSaeDetailPage() {
   const authorName = sae.createdBy?.name ? `${sae.createdBy.name.firstname || ''} ${sae.createdBy.name.lastname || ''}`.trim() : "Professeur";
 
   const getPhaseStatus = (milestoneId) => {
-    const isSubmitted = myProgress.some(p => p.milestoneId === milestoneId && p.isReached);
-    if (isSubmitted) return 'terminée';
-    return 'en cours'; // Simplification : tout le reste est en cours pour qu'ils puissent rendre
+    const prog = getMilestoneProgress(milestoneId);
+    if (prog?.isReached) return 'terminée';
+    return 'en cours'; // Le reste est disponible pour soumission
   };
 
   const isFolderOpen = openFolders['default'] !== false;
@@ -156,12 +175,22 @@ export default function StudentSaeDetailPage() {
               <h2 className="text-xl font-black text-gray-900 tracking-tight">Annonces</h2>
               <span className="bg-[#A3477F]/10 text-[#A3477F] text-xs font-black px-2 py-0.5 rounded-full">{announcements.length}</span>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {announcements.map(ann => (
-                <div key={ann.id} className="bg-[#A3477F]/5 border border-[#A3477F]/15 rounded-xl p-4">
-                  <p className="font-black text-gray-900 mb-1">{ann.title}</p>
-                  <p className="text-gray-600 text-sm leading-relaxed">{ann.content}</p>
-                  <p className="text-xs text-gray-400 mt-2">{new Date(ann.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <div key={ann.id} className="bg-[#A3477F]/5 border border-[#A3477F]/10 rounded-2xl p-5 hover:bg-[#A3477F]/8 transition-colors">
+                  <div className="flex items-start gap-4">
+                    <div className="mt-1 p-2 bg-white rounded-lg shadow-sm">
+                      <Megaphone className="w-4 h-4 text-[#A3477F]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 mb-1 text-lg">{ann.title}</p>
+                      <p className="text-gray-600 leading-relaxed whitespace-pre-line">{ann.content}</p>
+                      <div className="flex items-center gap-2 mt-3 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Publié le {new Date(ann.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -249,95 +278,140 @@ export default function StudentSaeDetailPage() {
               )}
             </div>
 
-            {/* Bloc Droite - Gestion des Phases */}
+            {/* Bloc Droite - Gestion des Paliers */}
             <div className="w-full xl:w-2/3 flex flex-col">
               
-              {/* Timeline Indicator */}
-              <div className="flex flex-wrap items-center gap-3 mb-10">
-                {milestonesList.length === 0 && <span className="text-gray-500 italic">Aucune phase configurée pour cette SAE.</span>}
-                {milestonesList.map((p, idx) => {
-                  const statut = getPhaseStatus(p.id);
-                  return (
-                    <div key={p.id} className="flex-1 min-w-[100px] flex flex-col gap-3 group">
-                      <div className="relative h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`absolute inset-0 transition-all duration-500 ${
-                            statut === 'terminée' 
-                              ? 'bg-[#A3477F]' 
-                              : statut === 'en cours' 
-                                ? 'bg-[#A3477F] opacity-90' 
-                                : 'bg-transparent'
-                          }`} 
-                        />
-                      </div>
-                      <span className={`text-xs font-bold uppercase tracking-widest transition-colors ${
-                        statut === 'en cours' ? 'text-[#A3477F]' : 
-                        statut === 'terminée' ? 'text-gray-800' : 'text-gray-400'
-                      }`}>
-                        Phase {idx + 1}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Phase Actuelle Content */}
-              {milestonesList.map((currentPhase, idx) => {
-                const statut = getPhaseStatus(currentPhase.id);
-                // On affiche la zone de saisie pour celles "en cours"
-                if (statut !== 'en cours') return null;
-
-                return (
-                  <div key={currentPhase.id} className="flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700 mb-10 border-b border-gray-100 pb-10 last:border-0 last:pb-0">
-                    <div className="mb-8">
-                      <div className="inline-block px-4 py-1.5 bg-[#A3477F]/10 rounded-full mb-4">
-                        <span className="text-sm font-bold text-[#A3477F] uppercase tracking-wider">Étape En Cours</span>
-                      </div>
-                      <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-3">
-                        Phase {idx + 1} : {currentPhase.title}
-                      </h3>
-                      <p className="text-gray-600 text-lg leading-relaxed">{currentPhase.description}</p>
-                    </div>
-                    
-                    <div className="flex flex-col gap-3 mb-8">
-                      <label htmlFor={`phase-input-${currentPhase.id}`} className="font-bold text-gray-800 flex items-center gap-2">
-                         <FileText className="w-5 h-5 text-gray-500" />
-                         Journal de bord de la phase
-                      </label>
-                      <div className="relative group">
-                        <textarea 
-                          id={`phase-input-${currentPhase.id}`}
-                          value={phaseInput[currentPhase.id] || ''}
-                          onChange={(e) => setPhaseInput(prev => ({...prev, [currentPhase.id]: e.target.value}))}
-                          placeholder="Décrivez ce que vous avez accompli durant cette phase, les difficultés rencontrées..."
-                          className="w-full min-h-[160px] p-4 border border-black rounded-lg bg-white focus:ring-2 focus:ring-[#A3477F]/20 focus:border-[#A3477F] transition-all duration-300 resize-y font-medium text-gray-800 shadow-sm placeholder:text-gray-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-5 bg-gray-50 p-5 rounded-xl border border-gray-100">
-                      <div className="flex items-center gap-2 text-red-500 font-bold bg-white px-4 py-2.5 rounded-lg shadow-sm border border-red-100 w-full sm:w-auto text-sm">
-                        <Clock className="w-5 h-5 animate-pulse" strokeWidth={1.5} />
-                        <span>Reste {calculateDaysRemaining(currentPhase.deadline)} jours</span>
-                      </div>
-                      <button 
-                        onClick={() => handlePhaseSubmit(currentPhase.id)}
-                        disabled={isSubmitting[currentPhase.id]}
-                        className="w-full sm:w-auto py-2.5 px-6 bg-black disabled:bg-gray-400 hover:bg-gray-800 text-white font-bold rounded-lg shadow-[0_8px_20px_0_rgba(0,0,0,0.2)] hover:shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-all duration-200 flex items-center justify-center gap-2"
-                      >
-                        {isSubmitting[currentPhase.id] ? (
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <>
-                            <span>Envoyer</span>
-                            <CheckCircle2 className="w-5 h-5" strokeWidth={1.5} />
-                          </>
-                        )}
-                      </button>
-                    </div>
+              {milestonesList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Clock className="w-10 h-10 text-gray-300 mb-3" strokeWidth={1.5} />
+                  <p className="text-gray-500 font-medium">Aucun palier configuré pour cette SAE.</p>
+                  <p className="text-gray-400 text-sm mt-1">La SAE se déroule en un seul bloc.</p>
+                </div>
+              ) : (
+                <>
+                  {/* ── Timeline visuelle ── */}
+                  <div className="flex flex-wrap items-center gap-3 mb-8">
+                    {milestonesList.map((p, idx) => {
+                      const statut = getPhaseStatus(p.id);
+                      return (
+                        <div key={p.id} className="flex-1 min-w-[90px] flex flex-col gap-2 group">
+                          <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`absolute inset-0 transition-all duration-500 ${
+                                statut === 'terminée' ? 'bg-[#A3477F]' : 'bg-[#A3477F]/30'
+                              }`} 
+                            />
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {statut === 'terminée' ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#A3477F] shrink-0" strokeWidth={2} />
+                            ) : (
+                              <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" strokeWidth={2} />
+                            )}
+                            <span className={`text-xs font-bold uppercase tracking-widest ${
+                              statut === 'terminée' ? 'text-[#A3477F]' : 'text-gray-400'
+                            }`}>
+                              Palier {idx + 1}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+
+                  {/* ── Rendu de chaque palier ── */}
+                  <div className="flex flex-col gap-6">
+                    {milestonesList.map((currentPhase, idx) => {
+                      const statut = getPhaseStatus(currentPhase.id);
+                      const prog = getMilestoneProgress(currentPhase.id);
+
+                      if (statut === 'terminée') {
+                        /* ── Palier terminé : affichage de l'historique ── */
+                        return (
+                          <div key={currentPhase.id} className="rounded-xl border border-[#A3477F]/20 bg-[#A3477F]/5 p-5 flex flex-col gap-3">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#A3477F] text-white font-black text-sm flex items-center justify-center shrink-0">
+                                  {idx + 1}
+                                </div>
+                                <div>
+                                  <h3 className="font-black text-gray-800 leading-tight">{currentPhase.title}</h3>
+                                  {currentPhase.description && (
+                                    <p className="text-gray-500 text-xs mt-0.5">{currentPhase.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="inline-flex items-center gap-1.5 text-xs font-black text-[#A3477F] bg-[#A3477F]/10 border border-[#A3477F]/20 px-3 py-1.5 rounded-full">
+                                <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
+                                Validé
+                                {prog?.reachedAt && (
+                                  <span className="text-[#A3477F]/60 font-medium">· {new Date(prog.reachedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                                )}
+                              </span>
+                            </div>
+                            {prog?.message && (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Votre journal</span>
+                                <p className="text-gray-700 text-sm leading-relaxed bg-white border border-[#A3477F]/15 p-3 rounded-lg italic">
+                                  "{prog.message}"
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      /* ── Palier en cours : formulaire de soumission ── */
+                      return (
+                        <div key={currentPhase.id} className="flex flex-col border-b border-gray-100 pb-8 last:border-0 last:pb-0">
+                          <div className="mb-6">
+                            <div className="inline-block px-4 py-1.5 bg-[#A3477F]/10 rounded-full mb-4">
+                              <span className="text-sm font-bold text-[#A3477F] uppercase tracking-wider">Palier en cours</span>
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
+                              Palier {idx + 1} : {currentPhase.title}
+                            </h3>
+                            {currentPhase.description && (
+                              <p className="text-gray-600 leading-relaxed">{currentPhase.description}</p>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-col gap-3 mb-6">
+                            <label htmlFor={`phase-input-${currentPhase.id}`} className="font-bold text-gray-800 flex items-center gap-2">
+                               <FileText className="w-5 h-5 text-gray-500" />
+                               Journal de bord
+                            </label>
+                            <textarea 
+                              id={`phase-input-${currentPhase.id}`}
+                              value={phaseInput[currentPhase.id] || ''}
+                              onChange={(e) => setPhaseInput(prev => ({...prev, [currentPhase.id]: e.target.value}))}
+                              placeholder="Décrivez ce que vous avez accompli, les difficultés rencontrées, vos choix..."
+                              className="w-full min-h-[160px] p-4 border border-black rounded-lg bg-white focus:ring-2 focus:ring-[#A3477F]/20 focus:border-[#A3477F] transition-all duration-300 resize-y font-medium text-gray-800 shadow-sm placeholder:text-gray-400"
+                            />
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <button 
+                              onClick={() => handlePhaseSubmit(currentPhase.id)}
+                              disabled={isSubmitting[currentPhase.id] || !phaseInput[currentPhase.id]?.trim()}
+                              className="w-full sm:w-auto py-3 px-8 bg-[#A3477F] disabled:bg-gray-300 hover:bg-[#8e3e6f] text-white font-bold rounded-lg shadow-[0_8px_20px_0_rgba(163,71,127,0.3)] hover:shadow-[0_12px_25px_rgba(163,71,127,0.4)] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+                            >
+                              {isSubmitting[currentPhase.id] ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-5 h-5" strokeWidth={1.5} />
+                                  <span>Valider ce palier</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </section>

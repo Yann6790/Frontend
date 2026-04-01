@@ -3,30 +3,78 @@ import { Link } from 'react-router-dom';
 import mmiLogo from '../Images/mmilogo.png';
 import { Eye, EyeOff } from 'lucide-react';
 import { saeService } from '../services/sae.service';
+import { resourcesService } from '../services/resources.service';
+import { useAuth } from '../context/AuthContext';
 
 const ALL_SEMESTRES = ["Tous", "S1", "S2", "S3", "S4", "S5", "S6"];
 
 export default function TeacherDashboard() {
+  const { user, isLoading: authLoading } = useAuth();
   const [saes, setSaes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [semesters, setSemesters] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [activeTab, setActiveTab] = useState('visibles');
   const [selectedSemestre, setSelectedSemestre] = useState('Tous');
 
   useEffect(() => {
-    const fetchSaes = async () => {
+    // Attendre que l'auth soit résolue
+    if (authLoading) return;
+    // Si pas de user après résolution, laisser l'AuthGuard rediriger
+    if (!user?.email) return;
+
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        const data = await saeService.getSaeList();
-        setSaes(Array.isArray(data) ? data : data?.data || []);
+        const [saeRes, semRes] = await Promise.allSettled([
+          saeService.getSaeList(),
+          resourcesService.getSemesters()
+        ]);
+
+        const allSaes = saeRes.status === 'fulfilled' ? (Array.isArray(saeRes.value) ? saeRes.value : saeRes.value?.data || []) : [];
+        const allSems = semRes.status === 'fulfilled' ? (Array.isArray(semRes.value) ? semRes.value : semRes.value?.data || []) : [];
+        setSemesters(allSems);
+
+        // ── 1. SAEs dont le prof est propriétaire ────────────────────
+        const ownedSaes = allSaes.filter(
+          sae => sae.createdBy?.email === user.email
+        );
+        const ownedIds = new Set(ownedSaes.map(s => s.id));
+
+        // ── 2. SAEs où le prof pourrait être invité ───────────────────
+        const notOwned = allSaes.filter(sae => !ownedIds.has(sae.id));
+        const invitationChecks = await Promise.allSettled(
+          notOwned.map(sae =>
+            saeService.getInvitations(sae.id)
+              .then(invs => {
+                const list = Array.isArray(invs) ? invs : invs?.data || [];
+                const myName = user.name;
+                const isInvited = list.some(inv => {
+                  if (!inv.name || !myName) return false;
+                  return (
+                    inv.name.firstname?.toLowerCase() === myName.firstname?.toLowerCase() &&
+                    inv.name.lastname?.toLowerCase() === myName.lastname?.toLowerCase()
+                  );
+                });
+                return isInvited ? sae : null;
+              })
+              .catch(() => null)
+          )
+        );
+
+        const invitedSaes = invitationChecks
+          .filter(r => r.status === 'fulfilled' && r.value !== null)
+          .map(r => r.value);
+
+        setSaes([...ownedSaes, ...invitedSaes]);
       } catch (error) {
-        console.error("Erreur lors de la récupération des SAEs", error);
+        console.error("Erreur lors de la récupération des données", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchSaes();
-  }, []);
+    fetchData();
+  }, [user, authLoading]);
 
   const displayedSAEs = useMemo(() => {
     let filtered = saes.filter(sae => {
@@ -37,10 +85,16 @@ export default function TeacherDashboard() {
     });
 
     if (selectedSemestre !== "Tous") {
-      // Comparer avec le semesterId (ex: 1 pour S1, 2 pour S2...)
-      // si sae.semesterId est un entier (1), selectedSemestre.replace('S', '') -> "1"
       const semFilterValue = selectedSemestre.replace('S', '');
-      filtered = filtered.filter(sae => String(sae.semesterId) === semFilterValue || sae.semester === selectedSemestre);
+      filtered = filtered.filter(sae => {
+        if (sae.semester === selectedSemestre) return true;
+        const semObj = semesters.find(s => s.id === sae.semesterId);
+        if (semObj) {
+          const num = semObj.number ?? parseInt((semObj.name || semObj.label || '').replace(/\D/g, ''), 10);
+          return String(num) === semFilterValue;
+        }
+        return String(sae.semesterId) === semFilterValue;
+      });
     }
 
     return filtered;
@@ -129,7 +183,7 @@ export default function TeacherDashboard() {
 
         {/* Zone d'affichage */}
         <div className="bg-white rounded-b-3xl rounded-tr-3xl shadow-sm border border-gray-200 p-6 md:p-8 min-h-[400px]">
-          {isLoading ? (
+          {(authLoading || isLoading) ? (
             <div className="flex flex-col items-center justify-center h-64 text-center">
                <div className="w-10 h-10 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
                <span className="text-gray-500 font-medium">Chargement des SAEs en cours...</span>
@@ -139,15 +193,29 @@ export default function TeacherDashboard() {
               
               {displayedSAEs.map(sae => {
                 const statut = getSaeStatus(sae);
+                const isOwner = sae.createdBy?.email === user?.email;
                 
                 return (
                 <div key={sae.id} className="bg-white rounded-lg p-5 shadow-sm border border-gray-200 hover:border-indigo-400 transition-all duration-200 hover:shadow-md hover:-translate-y-1 flex flex-col group relative overflow-hidden">
                   <div className="absolute inset-0 bg-indigo-50/0 group-hover:bg-indigo-50/30 transition-colors pointer-events-none"></div>
 
                   <div className="flex justify-between items-start mb-4 border-b border-gray-100 pb-3 relative z-10">
-                    <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">
-                      {sae.semester || (sae.semesterId ? `S${sae.semesterId}` : 'Général')}
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">
+                        {(() => {
+                          if (sae.semester) return sae.semester;
+                          const semObj = semesters.find(s => s.id === sae.semesterId);
+                          if (semObj) {
+                            const num = semObj.number ?? parseInt((semObj.name || semObj.label || '').replace(/\D/g, ''), 10);
+                            return num ? `S${num}` : (semObj.name || semObj.label || 'S?');
+                          }
+                          return sae.semesterId ? `S?` : 'Général';
+                        })()}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded ${isOwner ? 'bg-purple-50 text-purple-700' : 'bg-sky-50 text-sky-700'}`}>
+                        {isOwner ? '★ Propriétaire' : '✦ Invité'}
+                      </span>
+                    </div>
                     <span className={`text-[10px] font-bold px-2 py-1 rounded ${statut === 'Terminé' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>
                       {statut}
                     </span>
