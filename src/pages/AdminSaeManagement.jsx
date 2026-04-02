@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AdminNavbar from '../components/AdminNavbar';
-import { saeService } from '../services/sae.service';
-import { resourcesService } from '../services/resources.service';
 import SharedGallery from '../components/SharedGallery';
+import { resourcesService } from '../services/resources.service';
+import { saeService } from '../services/sae.service';
 
 // ─────────────────────────────────────────────────────────────────
 // Helpers
@@ -66,16 +67,16 @@ const EMPTY_FORM = {
 function FormField({ label, required, children }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-black uppercase tracking-wider text-gray-500">
-        {label} {required && <span className="text-black">*</span>}
+      <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+        {label} {required && <span className="text-slate-900">*</span>}
       </label>
       {children}
     </div>
   );
 }
 
-const inputCls = "w-full bg-white border border-gray-200 text-black px-3 py-2.5 rounded-lg outline-none focus:ring-2 focus:ring-black/10 focus:border-black font-medium text-sm transition-all";
-const selectCls = "w-full bg-white border border-gray-200 text-black px-3 py-2.5 rounded-lg outline-none focus:ring-2 focus:ring-black/10 focus:border-black font-medium text-sm transition-all cursor-pointer";
+const inputCls = "w-full bg-white border border-slate-300 text-slate-900 px-3 py-2.5 rounded-lg outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-medium text-sm transition-all";
+const selectCls = "w-full bg-white border border-slate-300 text-slate-900 px-3 py-2.5 rounded-lg outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-medium text-sm transition-all cursor-pointer";
 
 // ─────────────────────────────────────────────────────────────────
 // Sous-composant : Modale création SAE
@@ -177,23 +178,23 @@ function SaeFormModal({ saeList, semesters, thematics, banners, teachers, onClos
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 pt-10 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white border border-gray-200 shadow-2xl w-full max-w-2xl rounded-2xl overflow-hidden">
+      <div className="bg-white border border-slate-200 shadow-2xl w-full max-w-2xl rounded-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="bg-gray-50 border-b border-gray-200 px-8 py-5 flex justify-between items-center">
+        <div className="bg-slate-50 border-b border-slate-200 px-8 py-5 flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-black text-black tracking-tight">Créer une SAE</h2>
-            <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Nouveau module</p>
+            <h2 className="text-lg font-black text-slate-950 tracking-tight">Créer une SAE</h2>
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Nouveau module</p>
           </div>
-          <button
+          <Button
             onClick={onClose}
             disabled={isSubmitting}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition text-gray-400 hover:text-black"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 transition text-slate-400 hover:text-slate-900"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-5">
@@ -285,7 +286,7 @@ function SaeFormModal({ saeList, semesters, thematics, banners, teachers, onClos
                 <div 
                   key={b.id}
                   onClick={() => !isSubmitting && handleChange('bannerId', b.id)}
-                  className={`relative cursor-pointer rounded-lg border-2 overflow-hidden min-h-[60px] group transition-all ${form.bannerId === b.id ? 'border-black ring-2 ring-black/10' : 'border-gray-100 hover:border-gray-300'} ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`relative cursor-pointer rounded-lg border-2 overflow-hidden min-h-[60px] group transition-all ${form.bannerId === b.id ? 'border-purple-500 ring-2 ring-purple-100' : 'border-slate-200 hover:border-slate-300'} ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <img src={b.url} alt="Bannière" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   {form.bannerId === b.id && (
@@ -327,22 +328,22 @@ function SaeFormModal({ saeList, semesters, thematics, banners, teachers, onClos
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-            <button
+            <Button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
               className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-lg transition-all"
             >
               Annuler
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white font-bold text-sm rounded-lg transition-all shadow-sm flex items-center gap-2"
+              className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-lg transition-all shadow-sm flex items-center gap-2"
             >
               {isSubmitting && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               Créer la SAE
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -547,44 +548,44 @@ export default function AdminSaeManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans">
+    <div className="min-h-screen bg-white text-slate-900 font-montserrat">
       <AdminNavbar />
 
-      <main className="max-w-7xl mx-auto px-6 py-10 flex flex-col gap-6">
+      <main className="max-w-7xl mx-auto px-6 py-10 mt-16 flex flex-col gap-6">
 
         {/* ── En-tête ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <h1 className="text-3xl font-black text-black tracking-tight">Gestion des SAE</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <h1 className="text-3xl font-black text-slate-950 tracking-tight">Gestion des SAE</h1>
           <div className="flex items-center gap-3 flex-wrap">
             {notification.message && (
               <span className={`text-xs font-bold px-3 py-1.5 rounded-lg border ${
                 notification.type === 'error'
                   ? 'bg-red-50 text-red-600 border-red-100'
-                  : 'bg-gray-900 text-white border-black'
+                  : 'bg-purple-600 text-white border-purple-600'
               }`}>{notification.message}</span>
             )}
             {activeTab === 'active' && (
-              <button
+              <Button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-black hover:bg-gray-800 text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
+                className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                 </svg>
                 Créer une SAE
-              </button>
+              </Button>
             )}
           </div>
         </div>
 
         {/* ── Onglets ── */}
-        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-          <button
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+          <Button
             onClick={() => setActiveTab('active')}
             className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
               activeTab === 'active'
-                ? 'bg-black text-white shadow-sm'
-                : 'text-gray-500 hover:text-black hover:bg-white/50'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
             <span className="flex items-center gap-2">
@@ -594,13 +595,13 @@ export default function AdminSaeManagement() {
               SAE actives
               <span className="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-md">{saeList.length}</span>
             </span>
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setActiveTab('galerie')}
             className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
               activeTab === 'galerie'
-                ? 'bg-black text-white shadow-sm'
-                : 'text-gray-500 hover:text-black hover:bg-white/50'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
             <span className="flex items-center gap-2">
@@ -609,22 +610,22 @@ export default function AdminSaeManagement() {
               </svg>
               Galerie des étudiants
             </span>
-          </button>
+          </Button>
         </div>
 
         {/* ═══════════════════════ ONGLET SAE ACTIVES ═══════════════════════ */}
         {activeTab === 'active' && (
           <>
             {/* ── Filtres & Nettoyage ── */}
-            <div className="bg-gray-50 border border-gray-200 p-5 rounded-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+            <div className="bg-slate-50 border border-slate-200 p-5 rounded-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
               <div className="flex flex-wrap items-center gap-4">
-                <span className="text-xs font-black uppercase tracking-wider text-gray-600">Filtres :</span>
+                <span className="text-xs font-black uppercase tracking-wider text-slate-600">Filtres :</span>
 
                 {/* Filtre Semestre global 1 à 6 */}
                 <select
                   value={filterSemester}
                   onChange={e => setFilterSemester(e.target.value)}
-                  className="bg-white border border-gray-300 text-black px-3 py-2 text-sm font-medium rounded-lg outline-none focus:border-black cursor-pointer"
+                  className="bg-white border border-slate-300 text-slate-900 px-3 py-2 text-sm font-medium rounded-lg outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 cursor-pointer"
                 >
                   <option value="">Tous les semestres</option>
                   {[1, 2, 3, 4, 5, 6].map(num => (
@@ -633,41 +634,41 @@ export default function AdminSaeManagement() {
                 </select>
 
                 {/* Tri */}
-                <button
+                <Button
                   onClick={() => setSortDate(d => d === 'desc' ? 'asc' : 'desc')}
-                  className="border border-gray-300 hover:border-black px-3 py-2 text-xs font-bold uppercase rounded-lg hover:bg-black hover:text-white transition"
+                  className="border border-slate-300 hover:border-purple-500 px-3 py-2 text-xs font-bold uppercase rounded-lg hover:bg-purple-600 hover:text-white transition"
                 >
                   {sortDate === 'desc' ? '↓ Plus récent' : '↑ Plus ancien'}
-                </button>
+                </Button>
               </div>
 
               {/* Nettoyage par année */}
-              <div className="flex items-center gap-3 bg-white border border-gray-300 px-4 py-3 rounded-xl">
-                <div className="text-[11px] font-black uppercase tracking-wider text-gray-500">Nettoyage</div>
+              <div className="flex items-center gap-3 bg-white border border-slate-300 px-4 py-3 rounded-xl">
+                <div className="text-[11px] font-black uppercase tracking-wider text-slate-500">Nettoyage</div>
                 <input
                   type="number"
                   placeholder="Année (ex: 2023)"
                   value={deleteYear}
                   onChange={e => setDeleteYear(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-32 text-center font-bold bg-white outline-none focus:border-black"
+                  className="border border-slate-300 rounded-lg px-3 py-2 text-sm w-32 text-center font-bold bg-white outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                   min="2020"
                   max="2099"
                 />
-                <button
+                <Button
                   onClick={handleBatchDelete}
                   disabled={!deleteYear || isBulkDeleting}
                   className="bg-black text-white hover:bg-red-600 text-xs font-bold uppercase px-3 py-2 rounded-lg transition disabled:opacity-40 flex items-center gap-1.5"
                 >
                   {isBulkDeleting && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   Supprimer
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* ── Tableau ── */}
-            <div className="bg-white border border-gray-200 overflow-x-auto shadow-sm rounded-xl">
+            <div className="bg-white border border-slate-200 overflow-x-auto shadow-sm rounded-xl">
               <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200 text-gray-700">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
                   <tr>
                     <th className="py-4 px-5 font-bold">Titre</th>
                     <th className="py-4 px-5 font-bold">Thématique</th>
@@ -683,14 +684,14 @@ export default function AdminSaeManagement() {
                     <tr>
                       <td colSpan="7" className="py-20 text-center">
                         <div className="flex flex-col items-center gap-3">
-                          <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
-                          <span className="text-gray-500 font-medium">Chargement des SAE...</span>
+                          <div className="w-8 h-8 border-2 border-slate-200 border-t-purple-600 rounded-full animate-spin" />
+                          <span className="text-slate-500 font-medium">Chargement des SAE...</span>
                         </div>
                       </td>
                     </tr>
                   ) : filteredSaeList.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="py-20 text-center text-gray-400 font-medium italic">
+                      <td colSpan="7" className="py-20 text-center text-slate-400 font-medium italic">
                         Aucune SAE trouvée.
                       </td>
                     </tr>
@@ -705,44 +706,44 @@ export default function AdminSaeManagement() {
                     const themLabel = sae.thematic || '—';
 
                     return (
-                      <tr key={sae.id} className="hover:bg-gray-50 transition-colors group">
+                      <tr key={sae.id} className="hover:bg-slate-50 transition-colors group">
                         <td className="py-4 px-5">
-                          <div className="font-bold text-black max-w-[200px] truncate" title={sae.title}>{sae.title || '—'}</div>
+                          <div className="font-bold text-slate-950 max-w-[200px] truncate" title={sae.title}>{sae.title || '—'}</div>
                           {sae.isPublished !== undefined && (
-                            <span className={`text-[10px] font-black uppercase ${sae.isPublished ? 'text-green-600' : 'text-gray-400'}`}>
+                            <span className={`text-[10px] font-black uppercase ${sae.isPublished ? 'text-green-600' : 'text-slate-400'}`}>
                               {sae.isPublished ? '● Publiée' : '○ Brouillon'}
                             </span>
                           )}
                         </td>
-                        <td className="py-4 px-5 text-gray-600 font-medium">{themLabel}</td>
+                        <td className="py-4 px-5 text-slate-600 font-medium">{themLabel}</td>
                         <td className="py-4 px-5 text-center">
-                          <span className="inline-block px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-800 text-[11px] font-black uppercase rounded-md">
+                          <span className="inline-block px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-black uppercase rounded-md">
                             {semLabel}
                           </span>
                         </td>
                         <td className="py-4 px-5 text-center">
                           {sae.tdGroup
                             ? <span className="inline-block px-2.5 py-1 bg-black text-white text-[11px] font-black uppercase rounded-md">Groupe {sae.tdGroup}</span>
-                            : <span className="text-gray-300 text-xs">—</span>
+                            : <span className="text-slate-300 text-xs">—</span>
                           }
                         </td>
                         <td className="py-4 px-5">
-                          <span className="text-sm font-medium text-gray-700 truncate block max-w-[160px]">
+                          <span className="text-sm font-medium text-slate-700 truncate block max-w-[160px]">
                             {getUserFullName(sae.createdBy)}
                           </span>
                         </td>
-                        <td className="py-4 px-5 text-center text-xs text-gray-500 font-medium">
+                        <td className="py-4 px-5 text-center text-xs text-slate-500 font-medium">
                           {sae.createdAt ? new Date(sae.createdAt).toLocaleDateString('fr-FR') : '—'}
                         </td>
                         <td className="py-4 px-5">
                           <div className="flex items-center justify-center">
                             {/* Supprimer — seule action disponible après création */}
-                            <button
+                            <Button
                               onClick={() => handleDelete(sae.id)}
-                              className="text-[11px] font-bold uppercase bg-white hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-300 hover:border-red-300 px-3 py-1.5 rounded-lg transition"
+                              className="text-[11px] font-bold uppercase bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-300 hover:border-red-300 px-3 py-1.5 rounded-lg transition"
                             >
                               Supprimer
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -754,7 +755,7 @@ export default function AdminSaeManagement() {
 
             {/* Compteur */}
             {!isLoading && (
-              <p className="text-xs text-gray-400 font-medium text-right">
+              <p className="text-xs text-slate-400 font-medium text-right">
                 {filteredSaeList.length} SAE{filteredSaeList.length > 1 ? 's' : ''} affichée{filteredSaeList.length > 1 ? 's' : ''}
                 {saeList.length !== filteredSaeList.length ? ` sur ${saeList.length} au total` : ''}
               </p>
@@ -765,31 +766,31 @@ export default function AdminSaeManagement() {
         {/* ═══════════════════════ ONGLET GALERIE ═══════════════════════ */}
         {activeTab === 'galerie' && (
           <div className="flex flex-col gap-6">
-            <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-5">
-              <h2 className="text-sm font-black uppercase text-gray-800 tracking-wide">Modération de la Galerie étudiante</h2>
-              <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl">
-                <div className="text-[11px] font-black uppercase tracking-wider text-gray-500">Supprimer par année :</div>
+            <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-5">
+              <h2 className="text-sm font-black uppercase text-slate-800 tracking-wide">Modération de la Galerie étudiante</h2>
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl">
+                <div className="text-[11px] font-black uppercase tracking-wider text-slate-500">Supprimer par année :</div>
                 <input
                   type="number"
                   placeholder="Année (ex: 2023)"
                   value={deleteGalleryYear}
                   onChange={e => setDeleteGalleryYear(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-32 text-center font-bold bg-white outline-none focus:border-black"
+                  className="border border-slate-300 rounded-lg px-3 py-2 text-sm w-32 text-center font-bold bg-white outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                   min="2020"
                   max="2099"
                 />
-                <button
+                <Button
                   onClick={handleBatchDeleteGallery}
                   disabled={!deleteGalleryYear || isBulkDeletingGallery}
                   className="bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg transition disabled:opacity-40 flex items-center gap-1.5"
                 >
                   {isBulkDeletingGallery && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   Supprimer tout
-                </button>
+                </Button>
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
               <SharedGallery 
                 canModerate={true} 
                 isAdminView={true} 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 import AdminNavbar from '../components/AdminNavbar';
-import { resourcesService } from '../services/resources.service';
 import { authService } from '../services/auth.service';
+import { resourcesService } from '../services/resources.service';
 
 // Hook personnalisé pour le debounce
 function useDebounce(value, delay) {
@@ -140,44 +141,44 @@ export default function AdminAccountManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans relative">
+    <div className="min-h-screen bg-white flex flex-col font-montserrat relative">
       <AdminNavbar />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-10 flex flex-col gap-6">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-10 mt-16 flex flex-col gap-6">
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-gray-100">
-          <h1 className="text-3xl font-black text-black tracking-tight">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-slate-200">
+          <h1 className="text-3xl font-black text-slate-950 tracking-tight">
             Gestion des comptes du site
           </h1>
-          <button 
+          <Button 
             onClick={handleCreateTeacherClick}
-            className="bg-black hover:bg-gray-800 text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
+            className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
             Créer un compte Enseignant
-          </button>
+          </Button>
         </div>
 
         {/* Barre d'outils (Filtres) */}
-        <div className="bg-gray-50 border border-gray-200 p-5 flex flex-col md:flex-row items-center justify-between gap-4 rounded-xl">
+        <div className="bg-slate-50 border border-slate-200 p-5 flex flex-col md:flex-row items-center justify-between gap-4 rounded-xl">
           <div className="flex-1 w-full relative">
-            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             <input 
               type="text" 
               placeholder="Rechercher un nom ou un email..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full md:max-w-md bg-white border border-gray-300 text-black pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-medium text-sm transition-all rounded-lg"
+              className="w-full md:max-w-md bg-white border border-slate-300 text-slate-900 pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-medium text-sm transition-all rounded-lg"
             />
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <label className="text-sm font-bold text-gray-700 whitespace-nowrap">Rôle :</label>
+                <label className="text-sm font-bold text-slate-700 whitespace-nowrap">Rôle :</label>
               <select 
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="bg-white border border-gray-300 text-black px-4 py-2.5 outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-medium text-sm w-full cursor-pointer rounded-lg transition-all"
+                  className="bg-white border border-slate-300 text-slate-900 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-medium text-sm w-full cursor-pointer rounded-lg transition-all"
               >
                 <option value="Tous">Tous</option>
                 <option value="Étudiant">Étudiant</option>
@@ -215,25 +216,25 @@ export default function AdminAccountManagement() {
               ) : users.length > 0 ? (
                 users.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors group">
-                    <td className="py-4 px-6 font-bold text-black tracking-tight">
+                    <td className="py-4 px-6 font-bold text-slate-950 tracking-tight">
                       {getDisplayName(user)}
                     </td>
-                    <td className="py-4 px-6 text-gray-500 font-medium">
+                    <td className="py-4 px-6 text-slate-500 font-medium">
                       {user.email}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase border ${
-                        user.role === 'TEACHER' ? 'bg-black text-white border-black' : 
+                        user.role === 'TEACHER' ? 'bg-purple-100 text-purple-700 border-purple-200' : 
                         user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 border-purple-200' :
-                        'bg-gray-100 text-gray-600 border-gray-200'
+                        'bg-slate-100 text-slate-600 border-slate-200'
                       }`}>
                         {user.role}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-center text-gray-600 font-medium text-xs">
+                    <td className="py-4 px-6 text-center text-slate-600 font-medium text-xs">
                       {user.role === 'STUDENT' ? (user.promotion || '-') : '-'}
                     </td>
-                    <td className="py-4 px-6 text-center text-gray-600 font-medium text-xs">
+                    <td className="py-4 px-6 text-center text-slate-600 font-medium text-xs">
                       {user.role === 'STUDENT' ? (user.group || '-') : '-'}
                     </td>
                     <td className="py-4 px-6 text-center">
@@ -244,13 +245,13 @@ export default function AdminAccountManagement() {
                       )}
                     </td>
                     <td className="py-4 px-6 text-center">
-                      <button 
+                      <Button 
                         onClick={() => handleDelete(user.id)}
                         disabled={user.role === 'ADMIN'} // Empêcher la suppression des admins ou de soi-même idéalement
-                        className="bg-white hover:bg-gray-50 text-gray-600 border border-gray-300 text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-300 hover:border-red-300 text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         Supprimer
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -269,19 +270,19 @@ export default function AdminAccountManagement() {
       {/* MODALE 1 : Création de compte enseignant */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-gray-200 shadow-2xl w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="bg-gray-50 border-b border-gray-200 px-8 py-6 flex justify-between items-center">
+          <div className="bg-white border border-slate-200 shadow-2xl w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-slate-50 border-b border-slate-200 px-8 py-6 flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-black text-black tracking-tight">Nouveau Professeur</h2>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Création de compte</p>
               </div>
-              <button 
+              <Button 
                 onClick={() => setIsCreateModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-black"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-900"
                 disabled={isCreating}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
+              </Button>
             </div>
 
             <form onSubmit={submitCreateTeacher} className="p-8 flex flex-col gap-5">
@@ -298,7 +299,7 @@ export default function AdminAccountManagement() {
                   type="text" 
                   value={newTeacherData.firstname} 
                   onChange={(e) => setNewTeacherData({ ...newTeacherData, firstname: e.target.value })}
-                  className="w-full bg-white border border-gray-200 text-black px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-bold text-sm transition-all"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
                   required
                   disabled={isCreating}
                 />
@@ -310,7 +311,7 @@ export default function AdminAccountManagement() {
                   type="text" 
                   value={newTeacherData.lastname} 
                   onChange={(e) => setNewTeacherData({ ...newTeacherData, lastname: e.target.value })}
-                  className="w-full bg-white border border-gray-200 text-black px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-bold text-sm transition-all"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
                   required
                   disabled={isCreating}
                 />
@@ -322,29 +323,29 @@ export default function AdminAccountManagement() {
                   type="email" 
                   value={newTeacherData.email} 
                   onChange={(e) => setNewTeacherData({ ...newTeacherData, email: e.target.value })}
-                  className="w-full bg-white border border-gray-200 text-black px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-bold text-sm transition-all"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
                   required
                   disabled={isCreating}
                 />
               </div>
 
               <div className="flex justify-end gap-3 mt-4">
-                <button 
+                <Button 
                   type="button" 
                   onClick={() => setIsCreateModalOpen(false)}
                   disabled={isCreating}
                   className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm rounded-xl transition-all"
                 >
                   Annuler
-                </button>
-                <button 
+                </Button>
+                <Button 
                   type="submit" 
                   disabled={isCreating}
-                  className="px-6 py-3 bg-black hover:bg-gray-800 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
                 >
                   {isCreating && <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
                   Créer le compte
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -368,23 +369,23 @@ export default function AdminAccountManagement() {
                 <div className="text-xl font-mono font-black text-black tracking-widest break-all">
                   {successData.tempPassword}
                 </div>
-                <button 
+                <Button 
                   onClick={() => navigator.clipboard.writeText(successData.tempPassword)}
                   className="absolute top-2 right-2 text-gray-400 hover:text-black bg-white shadow-sm border border-gray-200 rounded-md p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Copier le mot de passe"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                </button>
+                </Button>
               </div>
 
               <div className="w-full mt-4">
-                <button 
+                <Button 
                   type="button" 
                   onClick={closeSuccessModal}
-                  className="w-full px-6 py-3 bg-black hover:bg-gray-800 text-white font-bold text-sm rounded-xl transition-all shadow-lg"
+                  className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg"
                 >
                   Fermer
-                </button>
+                </Button>
               </div>
             </div>
           </div>

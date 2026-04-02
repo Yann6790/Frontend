@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 import AdminNavbar from '../components/AdminNavbar';
 import { adminService } from '../services/admin.service';
 import { resourcesService } from '../services/resources.service';
@@ -172,18 +173,18 @@ export default function AdminStudentValidation() {
 
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans relative">
+    <div className="min-h-screen bg-white flex flex-col font-montserrat relative">
       <AdminNavbar />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-10 flex flex-col gap-6">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-10 mt-16 flex flex-col gap-6">
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
-          <h1 className="text-3xl font-black text-black tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+          <h1 className="text-3xl font-black text-slate-950 tracking-tight">
             Validation des inscriptions étudiants
           </h1>
           {/* Notification Toast */}
           {notification.message && (
-            <div className={`px-4 py-2 rounded-lg font-bold text-xs shadow-md border animate-in fade-in slide-in-from-top-2 ${notification.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-gray-900 text-white border-black'
+            <div className={`px-4 py-2 rounded-lg font-bold text-xs shadow-md border animate-in fade-in slide-in-from-top-2 ${notification.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-purple-600 text-white border-purple-600'
               }`}>
               {notification.message}
             </div>
@@ -191,14 +192,14 @@ export default function AdminStudentValidation() {
         </div>
 
         {/* Zone de filtres (Strict Monochrome) */}
-        <div className="bg-gray-50 border border-gray-200 p-5 flex flex-col sm:flex-row items-center justify-start gap-6 rounded-xl">
+        <div className="bg-slate-50 border border-slate-200 p-5 flex flex-col sm:flex-row items-center justify-start gap-6 rounded-xl">
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <label className="text-sm font-bold text-gray-700 whitespace-nowrap">Promotion :</label>
+            <label className="text-sm font-bold text-slate-700 whitespace-nowrap">Promotion :</label>
             <select
               value={filterPromo}
               onChange={(e) => setFilterPromo(e.target.value)}
               disabled={isLoading}
-              className="bg-white border border-gray-300 text-black px-4 py-2 outline-none focus:border-black font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
+              className="bg-white border border-slate-300 text-slate-900 px-4 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
             >
               <option value="Toutes">Toutes</option>
               {promotions.map(p => (
@@ -208,12 +209,12 @@ export default function AdminStudentValidation() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <label className="text-sm font-bold text-gray-700 whitespace-nowrap">Groupe TP :</label>
+            <label className="text-sm font-bold text-slate-700 whitespace-nowrap">Groupe TP :</label>
             <select
               value={filterTP}
               onChange={(e) => setFilterTP(e.target.value)}
               disabled={isLoading}
-              className="bg-white border border-gray-300 text-black px-4 py-2 outline-none focus:border-black font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
+              className="bg-white border border-slate-300 text-slate-900 px-4 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
             >
               <option value="Tous">Tous</option>
               {groups.map(g => (
@@ -224,9 +225,9 @@ export default function AdminStudentValidation() {
         </div>
 
         {/* Zone d'affichage (Tableau strict) */}
-        <div className="bg-white border border-gray-200 overflow-x-auto shadow-sm rounded-xl">
+        <div className="bg-white border border-slate-200 overflow-x-auto shadow-sm rounded-xl">
           <table className="w-full text-left border-collapse text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-700">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
               <tr>
                 <th className="py-4 px-6 font-bold">Nom & Prénom</th>
                 <th className="py-4 px-6 font-bold">Email</th>
@@ -240,62 +241,62 @@ export default function AdminStudentValidation() {
                 <tr>
                   <td colSpan="5" className="py-20 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
-                      <span className="text-gray-500 font-medium">Chargement des demandes...</span>
+                      <div className="w-8 h-8 border-2 border-slate-200 border-t-purple-600 rounded-full animate-spin" />
+                      <span className="text-slate-500 font-medium">Chargement des demandes...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50 transition-colors group">
+                  <tr key={student.id} className="hover:bg-slate-50 transition-colors group">
                     <td className="py-4 px-6">
-                      <div className="font-bold text-black uppercase tracking-tight">
-                        {student.lastname || student.name?.lastname} <span className="capitalize font-medium text-gray-600">{student.firstname || student.name?.firstname}</span>
+                      <div className="font-bold text-slate-950 uppercase tracking-tight">
+                        {student.lastname || student.name?.lastname} <span className="capitalize font-medium text-slate-600">{student.firstname || student.name?.firstname}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-500 font-medium">
+                    <td className="py-4 px-6 text-slate-500 font-medium">
                       {student.email}
                     </td>
                     <td className="py-4 px-6 text-center">
-                      <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-bold ring-1 ring-gray-200">
+                      <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold ring-1 ring-slate-200">
                         {getPromoName(student)}
                       </span>
                     </td>
                     <td className="py-4 px-6 text-center">
-                      <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-bold ring-1 ring-gray-200">
+                      <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold ring-1 ring-slate-200">
                         {getGroupName(student)}
                       </span>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-center gap-2">
-                        <button
+                        <Button
                           onClick={() => handleAccept(student.id)}
                           disabled={isActionLoading}
-                          className="bg-black hover:bg-gray-800 text-white text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
+                          className="bg-purple-600 hover:bg-purple-700 text-white text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
                         >
                           Accepter
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => handleRefuse(student.id)}
                           disabled={isActionLoading}
-                          className="bg-white hover:bg-gray-50 text-black border border-gray-300 text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
+                          className="bg-white hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-300 hover:border-red-300 text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
                         >
                           Refuser
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => handleEditClick(student)}
                           disabled={isActionLoading}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] uppercase tracking-wider font-black px-3 py-2 rounded-lg transition-all disabled:opacity-50"
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] uppercase tracking-wider font-black px-3 py-2 rounded-lg transition-all disabled:opacity-50"
                         >
                           Modifier
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="py-20 text-center text-gray-400 font-medium italic">
+                  <td colSpan="5" className="py-20 text-center text-slate-400 font-medium italic">
                     Aucune demande en attente.
                   </td>
                 </tr>
@@ -308,43 +309,43 @@ export default function AdminStudentValidation() {
       {/* Modale d'Édition (SaaS Monochrome) */}
       {editingStudent && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-gray-200 shadow-2xl w-full max-w-lg rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-200 shadow-2xl w-full max-w-lg rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
 
-            <div className="bg-gray-50 border-b border-gray-200 px-8 py-6 flex justify-between items-center">
+            <div className="bg-slate-50 border-b border-slate-200 px-8 py-6 flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-black text-black tracking-tight">Modifier l'inscription</h2>
-                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Édition des données sources</p>
+                <h2 className="text-xl font-black text-slate-950 tracking-tight">Modifier l'inscription</h2>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Édition des données sources</p>
               </div>
-              <button
+              <Button
                 onClick={() => setEditingStudent(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-black"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-900"
                 disabled={isActionLoading}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
+              </Button>
             </div>
 
             <form onSubmit={handleSaveEdit} className="p-8 flex flex-col gap-6">
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-gray-400 ml-1">Nom</label>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 ml-1">Nom</label>
                   <input
                     type="text"
                     value={editingStudent.lastname}
                     onChange={(e) => handleChangeEdit('lastname', e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-black px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-bold text-sm transition-all"
+                    className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
                     required
                     disabled={isActionLoading}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-gray-400 ml-1">Prénom</label>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 ml-1">Prénom</label>
                   <input
                     type="text"
                     value={editingStudent.firstname}
                     onChange={(e) => handleChangeEdit('firstname', e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-black px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-bold text-sm transition-all"
+                    className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
                     required
                     disabled={isActionLoading}
                   />
@@ -352,11 +353,11 @@ export default function AdminStudentValidation() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-black uppercase tracking-wider text-gray-400 ml-1">Promotion</label>
+                <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 ml-1">Promotion</label>
                 <select
                   value={editingStudent.promotionId}
                   onChange={(e) => handleChangeEdit('promotionId', e.target.value)}
-                  className="w-full bg-white border border-gray-200 text-black px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-bold text-sm transition-all cursor-pointer"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all cursor-pointer"
                   required
                   disabled={isActionLoading}
                 >
@@ -368,11 +369,11 @@ export default function AdminStudentValidation() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-black uppercase tracking-wider text-gray-400 ml-1">Groupe TP</label>
+                <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 ml-1">Groupe TP</label>
                 <select
                   value={editingStudent.groupId}
                   onChange={(e) => handleChangeEdit('groupId', e.target.value)}
-                  className="w-full bg-white border border-gray-200 text-black px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-black/5 focus:border-black font-bold text-sm transition-all cursor-pointer"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all cursor-pointer"
                   required
                   disabled={isActionLoading}
                 >
@@ -384,22 +385,22 @@ export default function AdminStudentValidation() {
               </div>
 
               <div className="flex justify-end gap-3 mt-4">
-                <button
+                <Button
                   type="button"
                   onClick={() => setEditingStudent(null)}
                   disabled={isActionLoading}
-                  className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm rounded-xl transition-all"
+                  className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm rounded-xl transition-all"
                 >
                   Annuler
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isActionLoading}
-                  className="px-6 py-3 bg-black hover:bg-gray-800 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
                 >
                   {isActionLoading && <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
                   Enregistrer les modifications
-                </button>
+                </Button>
               </div>
 
             </form>

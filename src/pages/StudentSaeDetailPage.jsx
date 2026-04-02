@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import IllustratedState from "../components/IllustratedState";
 import { saeService } from "../services/sae.service";
 
 export default function StudentSaeDetailPage() {
@@ -140,16 +141,28 @@ export default function StudentSaeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-slate-200 border-t-purple-600 rounded-full animate-spin"></div>
+      <div className="bg-white">
+        <IllustratedState
+          imageSrc="/images/undraw_work-time_1ogn.svg"
+          imageAlt="Chargement de la SAE"
+          title="Chargement de la SAE"
+          description="Nous preparons les details, documents et paliers."
+          className="min-h-screen"
+        />
       </div>
     );
   }
 
   if (!saeDefaults) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-white text-slate-600">
-        SAE introuvable
+      <div className="bg-white">
+        <IllustratedState
+          imageSrc="/images/undraw_work-time_1ogn.svg"
+          imageAlt="SAE introuvable"
+          title="SAE introuvable"
+          description="Cette SAE est indisponible ou vous n'avez pas les droits d'acces."
+          className="min-h-screen"
+        />
       </div>
     );
   }

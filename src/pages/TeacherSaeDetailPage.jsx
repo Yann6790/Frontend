@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import IllustratedState from "../components/IllustratedState";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
 
@@ -676,8 +677,14 @@ export default function TeacherSaeDetailPage() {
   };
   if (isLoading) {
     return (
-      <div className="flex-1 min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin" />
+      <div className="bg-slate-50">
+        <IllustratedState
+          imageSrc="/images/undraw_work-time_1ogn.svg"
+          imageAlt="Chargement de la SAE"
+          title="Chargement de la SAE"
+          description="Nous recuperons vos contenus, rendus et statistiques."
+          className="min-h-screen"
+        />
       </div>
     );
   }
