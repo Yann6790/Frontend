@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import mmiLogo from "../Images/mmilogo.png";
+import { Button } from "./ui/button";
 
 export default function AdminNavbar() {
   const { signOut } = useAuth();
@@ -33,8 +34,8 @@ export default function AdminNavbar() {
             className={({ isActive }) =>
               `text-sm font-semibold transition-all border-b-2 h-full flex items-center ${
                 isActive
-                  ? "border-purple-600 text-purple-600"
-                  : "border-transparent text-slate-600 hover:text-purple-600"
+                  ? "border-slate-900 text-slate-900"
+                  : "border-transparent text-slate-600 hover:text-slate-900"
               }`
             }
           >
@@ -47,7 +48,7 @@ export default function AdminNavbar() {
       <div className="flex justify-end items-center gap-4 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-slate-700">Admin</span>
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-200 bg-purple-100 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-100 flex items-center justify-center">
             <img
               src="/Images/adminlogo.png"
               alt="Profil Admin"
@@ -61,11 +62,13 @@ export default function AdminNavbar() {
           </div>
         </div>
 
-        <button
+        <Button
           onClick={handleSignOut}
+          variant="adminOutline"
+          size="icon"
           aria-label="Se deconnecter"
           title="Se deconnecter"
-          className="text-purple-600 bg-purple-50 hover:bg-purple-100 w-10 h-10 rounded-full transition-colors border border-purple-200 shadow-sm flex items-center justify-center"
+          className="w-10 h-10 rounded-full transition-colors shadow-sm flex items-center justify-center p-0"
         >
           <svg
             className="w-5 h-5"
@@ -80,7 +83,7 @@ export default function AdminNavbar() {
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             ></path>
           </svg>
-        </button>
+        </Button>
       </div>
     </nav>
   );

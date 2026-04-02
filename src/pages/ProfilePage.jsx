@@ -17,7 +17,7 @@ export default function ProfilePage() {
 
   const [notification, setNotification] = useState({ message: '', type: '' });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
+  const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
 
   // Nouveaux états pour l'avatar
   const [selectedFile, setSelectedFile] = useState(null);
@@ -82,15 +82,31 @@ export default function ProfilePage() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setNotification({ message: '', type: '' });
+
+    if (passwords.newPassword !== passwords.confirmNewPassword) {
+      setNotification({ message: "Le nouveau mot de passe et sa confirmation ne correspondent pas.", type: "error" });
+      return;
+    }
+
+    if (passwords.newPassword.length < 6) {
+      setNotification({ message: "Le nouveau mot de passe doit faire au moins 6 caracteres.", type: "error" });
+      return;
+    }
+
     setIsChangingPassword(true);
 
     try {
-      await authService.changePassword({
+      const res = await authService.changePassword({
         oldPassword: passwords.oldPassword,
         newPassword: passwords.newPassword
       });
+
+      if (res && res.success === false) {
+        throw new Error(res.message || "Erreur lors de la modification");
+      }
+
       setNotification({ message: "Mot de passe modifie avec succes.", type: "success" });
-      setPasswords({ oldPassword: '', newPassword: '' });
+      setPasswords({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (err) {
       setNotification({ message: err.message || "Erreur lors de la modification", type: "error" });
     } finally {
@@ -129,7 +145,7 @@ export default function ProfilePage() {
           <div className="space-y-6 lg:col-span-1">
             <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <div className="mb-6 flex flex-col items-center">
-                <div className="relative mb-4 h-24 w-24 overflow-hidden rounded-full bg-purple-100 shadow-md">
+                <div className="relative mb-4 h-24 w-24 overflow-hidden rounded-full bg-slate-100 shadow-md">
                   {(previewUrl || user?.imageUrl) ? (
                     <img
                       src={previewUrl || user?.imageUrl}
@@ -137,7 +153,7 @@ export default function ProfilePage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-black uppercase text-purple-700">
+                    <div className="flex h-full w-full items-center justify-center text-3xl font-black uppercase text-slate-700">
                       {user?.firstname?.[0] || user?.name?.firstname?.[0] || "U"}
                     </div>
                   )}
@@ -188,6 +204,7 @@ export default function ProfilePage() {
                   </Button>
                   <Button
                     type="button"
+                    variant="admin"
                     className="w-full"
                     onClick={handleSaveAvatar}
                     disabled={isUploadingAvatar}
@@ -292,7 +309,7 @@ export default function ProfilePage() {
                       setPasswords({ ...passwords, oldPassword: e.target.value })
                     }
                     placeholder="Saisissez votre mot de passe actuel"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
                     required
                   />
                 </div>
@@ -308,15 +325,32 @@ export default function ProfilePage() {
                       setPasswords({ ...passwords, newPassword: e.target.value })
                     }
                     placeholder="Saisissez le nouveau mot de passe"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Confirmer le nouveau mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    value={passwords.confirmNewPassword}
+                    onChange={(e) =>
+                      setPasswords({ ...passwords, confirmNewPassword: e.target.value })
+                    }
+                    placeholder="Confirmez le nouveau mot de passe"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
                     required
                   />
                 </div>
 
                 <Button
                   type="submit"
+                  variant="admin"
                   disabled={isChangingPassword}
-                  className="mt-2 w-full"
+                  className="mt-2 w-full font-bold uppercase tracking-wider h-11"
                 >
                   {isChangingPassword
                     ? "Modification..."

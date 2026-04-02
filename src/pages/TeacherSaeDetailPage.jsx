@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
 
@@ -41,6 +42,7 @@ function toLocalDatetimeValue(isoStr) {
 export default function TeacherSaeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // ── App States ──
   const [isEditing, setIsEditing] = useState(false);
@@ -169,13 +171,52 @@ export default function TeacherSaeDetailPage() {
           : [],
       );
 
-      setAnnouncements(
+      let annList =
         annRes.status === "fulfilled"
           ? Array.isArray(annRes.value)
             ? annRes.value
             : annRes.value?.data || annRes.value || []
-          : [],
+          : [];
+
+      // ── Filtrage des annonces personnelles ──
+      if (user?.role !== "ADMIN") {
+        annList = annList.filter(
+          (ann) =>
+            ann.userId === user?.id ||
+            ann.authorId === user?.id ||
+            ann.creatorId === user?.id ||
+            ann.authorName === user?.name ||
+            ann.authorEmail === user?.email,
+        );
+      }
+      setAnnouncements(annList);
+
+      // ── Vérification des droits d'accès ──
+      const invs =
+        invRes.status === "fulfilled"
+          ? Array.isArray(invRes.value)
+            ? invRes.value
+            : invRes.value?.data || invRes.value || []
+          : [];
+
+      const isOwner =
+        saeData.createdBy?.id === user?.id ||
+        saeData.createdBy?.email === user?.email;
+      const isInvited = invs.some(
+        (i) =>
+          i.userId === user?.id ||
+          i.email === user?.email ||
+          (i.name?.firstname?.toLowerCase() ===
+            user?.name?.firstname?.toLowerCase() &&
+            i.name?.lastname?.toLowerCase() ===
+              user?.name?.lastname?.toLowerCase()),
       );
+
+      if (user?.role !== "ADMIN" && !isOwner && !isInvited) {
+        alert("Accès non autorisé : Vous ne faites pas partie de cette SAE.");
+        navigate("/teacher-dashboard");
+        return;
+      }
 
       // Charger les rendus et notes
       Promise.allSettled([

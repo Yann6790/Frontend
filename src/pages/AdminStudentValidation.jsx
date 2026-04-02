@@ -184,7 +184,7 @@ export default function AdminStudentValidation() {
           </h1>
           {/* Notification Toast */}
           {notification.message && (
-            <div className={`px-4 py-2 rounded-lg font-bold text-xs shadow-md border animate-in fade-in slide-in-from-top-2 ${notification.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-purple-600 text-white border-purple-600'
+            <div className={`px-4 py-2 rounded-lg font-bold text-xs shadow-md border animate-in fade-in slide-in-from-top-2 ${notification.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-800 text-white border-slate-800'
               }`}>
               {notification.message}
             </div>
@@ -199,7 +199,7 @@ export default function AdminStudentValidation() {
               value={filterPromo}
               onChange={(e) => setFilterPromo(e.target.value)}
               disabled={isLoading}
-              className="bg-white border border-slate-300 text-slate-900 px-4 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
+              className="bg-white border border-slate-300 text-slate-900 px-4 py-2 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
             >
               <option value="Toutes">Toutes</option>
               {promotions.map(p => (
@@ -214,7 +214,7 @@ export default function AdminStudentValidation() {
               value={filterTP}
               onChange={(e) => setFilterTP(e.target.value)}
               disabled={isLoading}
-              className="bg-white border border-slate-300 text-slate-900 px-4 py-2 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
+              className="bg-white border border-slate-300 text-slate-900 px-4 py-2 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 font-medium text-sm w-full sm:w-auto cursor-pointer rounded-lg transition-all"
             >
               <option value="Tous">Tous</option>
               {groups.map(g => (
@@ -241,7 +241,7 @@ export default function AdminStudentValidation() {
                 <tr>
                   <td colSpan="5" className="py-20 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-slate-200 border-t-purple-600 rounded-full animate-spin" />
+                      <div className="w-8 h-8 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
                       <span className="text-slate-500 font-medium">Chargement des demandes...</span>
                     </div>
                   </td>
@@ -272,7 +272,8 @@ export default function AdminStudentValidation() {
                         <Button
                           onClick={() => handleAccept(student.id)}
                           disabled={isActionLoading}
-                          className="bg-purple-600 hover:bg-purple-700 text-white text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
+                          variant="admin"
+                          className="text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
                         >
                           Accepter
                         </Button>
@@ -334,7 +335,7 @@ export default function AdminStudentValidation() {
                     type="text"
                     value={editingStudent.lastname}
                     onChange={(e) => handleChangeEdit('lastname', e.target.value)}
-                    className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
+                    className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-bold text-sm transition-all"
                     required
                     disabled={isActionLoading}
                   />
@@ -345,7 +346,7 @@ export default function AdminStudentValidation() {
                     type="text"
                     value={editingStudent.firstname}
                     onChange={(e) => handleChangeEdit('firstname', e.target.value)}
-                    className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
+                    className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-bold text-sm transition-all"
                     required
                     disabled={isActionLoading}
                   />
@@ -357,7 +358,7 @@ export default function AdminStudentValidation() {
                 <select
                   value={editingStudent.promotionId}
                   onChange={(e) => handleChangeEdit('promotionId', e.target.value)}
-                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all cursor-pointer"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-bold text-sm transition-all cursor-pointer"
                   required
                   disabled={isActionLoading}
                 >
@@ -373,7 +374,7 @@ export default function AdminStudentValidation() {
                 <select
                   value={editingStudent.groupId}
                   onChange={(e) => handleChangeEdit('groupId', e.target.value)}
-                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all cursor-pointer"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-bold text-sm transition-all cursor-pointer"
                   required
                   disabled={isActionLoading}
                 >
@@ -396,7 +397,8 @@ export default function AdminStudentValidation() {
                 <Button
                   type="submit"
                   disabled={isActionLoading}
-                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+                  variant="admin"
+                  className="px-6 py-3 font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
                 >
                   {isActionLoading && <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
                   Enregistrer les modifications

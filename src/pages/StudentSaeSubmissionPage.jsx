@@ -26,15 +26,20 @@ import { saeService } from "../services/sae.service";
 export default function StudentSaeSubmissionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const forcedReadOnly = searchParams.get("mode") === "view";
 
   // ── États page ──
   const [isLoading, setIsLoading] = useState(true);
-  const [isReadOnly, setIsReadOnly] = useState(forcedReadOnly);
+  const isReadOnly = searchParams.get("mode") !== "edit" && (forcedReadOnly || !!existingSubmission);
+  
+  const setIsReadOnly = (val) => {
+    setSearchParams({ mode: val ? "view" : "edit" }, { replace: true });
+  };
   const [existingSubmission, setExistingSubmission] = useState(null);
   const [saeTitle, setSaeTitle] = useState("");
   const [saeBanner, setSaeBanner] = useState("");
+  const [dueDate, setDueDate] = useState(null);
 
   // ── États formulaire ──
   const [description, setDescription] = useState("");
@@ -68,6 +73,7 @@ export default function StudentSaeSubmissionPage() {
           const saeData = saeRes?.data || saeRes;
           setSaeTitle(saeData?.title || "");
           setSaeBanner(saeData?.banner || "");
+          setDueDate(saeData?.dueDate || null);
         } catch {
           /* ignore */
         }
@@ -78,7 +84,10 @@ export default function StudentSaeSubmissionPage() {
           const subData = sub?.data || sub;
           if (subData && subData.id) {
             setExistingSubmission(subData);
-            setIsReadOnly(true);
+            // Si on est en mode explicitement edit, on ne met pas en readOnly
+            if (searchParams.get("mode") !== "edit") {
+              setIsReadOnly(true);
+            }
             setDescription(subData.description || "");
             setIsPublic(subData.isPublic ?? false);
             setImagePreview(subData.imageUrl || null);
@@ -130,7 +139,7 @@ export default function StudentSaeSubmissionPage() {
   // ────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedFile) {
+    if (!selectedFile && !existingSubmission) {
       setError("Veuillez sélectionner un fichier à soumettre.");
       return;
     }
@@ -138,13 +147,22 @@ export default function StudentSaeSubmissionPage() {
     setIsSubmitting(true);
     try {
       // Étape 1 : Upload du fichier principal
-      const formDataFile = new FormData();
-      formDataFile.append("file", selectedFile);
-      formDataFile.append("saeId", id);
-      formDataFile.append("description", description);
-      const uploadRes = await saeService.uploadSaeResource(formDataFile);
-      const fileUrl = uploadRes?.url || uploadRes?.data?.url;
-      if (!fileUrl) throw new Error("L'URL du fichier uploadé est manquante.");
+      let fileUrl = existingSubmission?.url;
+      let fileName = existingSubmission?.fileName;
+      let mimeType = existingSubmission?.mimeType;
+
+      if (selectedFile) {
+        const formDataFile = new FormData();
+        formDataFile.append("file", selectedFile);
+        formDataFile.append("saeId", id);
+        formDataFile.append("description", description);
+        const uploadRes = await saeService.uploadSaeResource(formDataFile);
+        fileUrl = uploadRes?.url || uploadRes?.data?.url || uploadRes;
+        fileName = selectedFile.name;
+        mimeType = selectedFile.type;
+      }
+      
+      if (!fileUrl) throw new Error("L'URL du fichier est manquante.");
 
       // Étape 2 : Upload de l'image si fournie
       let imageUrl = null;
@@ -156,8 +174,8 @@ export default function StudentSaeSubmissionPage() {
       // Étape 3 : Soumission du rendu
       const body = {
         url: fileUrl,
-        fileName: selectedFile.name,
-        mimeType: selectedFile.type,
+        fileName: fileName || "Fichier",
+        mimeType: mimeType || "application/octet-stream",
         description,
         isPublic,
         ...(imageUrl && { imageUrl }),
@@ -235,20 +253,43 @@ export default function StudentSaeSubmissionPage() {
         </div>
 
         {/* Badge statut */}
-        {isReadOnly && existingSubmission && (
-          <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-lg">
-            <CheckCircle2 className="w-4 h-4" />
-            <span className="text-xs font-semibold">
-              Soumis le{" "}
-              {new Date(existingSubmission.submittedAt).toLocaleDateString(
-                "fr-FR",
-              )}
-            </span>
+        {existingSubmission && (
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-100">
+              <CheckCircle2 className="w-4 h-4" />
+              <span className="text-xs font-semibold">
+                Soumis le{" "}
+                {new Date(existingSubmission.submittedAt).toLocaleDateString(
+                  "fr-FR",
+                  { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+                )}
+              </span>
+            </div>
+
+            {existingSubmission.isLate && (
+              <div className="flex items-center gap-2 bg-red-50 text-red-700 px-3 py-2 rounded-lg border border-red-100">
+                <Clock className="w-4 h-4" />
+                <span className="text-xs font-semibold">
+                  Retard : {existingSubmission.lateTime || "Temps dépassé"}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Warning retard si on modifie après deadline */}
+        {!isReadOnly && dueDate && new Date() > new Date(dueDate) && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg flex items-start gap-3 shadow-sm">
+            <Clock className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600" />
+            <div className="text-sm">
+              <p className="font-bold">Attention : Date limite dépassée</p>
+              <p>Toute modification apportée maintenant marquera votre rendu comme étant <strong>en retard</strong>.</p>
+            </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 text-red-700 font-medium px-3 py-2 rounded-lg text-xs">
+          <div className="bg-red-50 text-red-700 font-medium px-4 py-3 rounded-xl text-sm border border-red-100 shadow-sm">
             {error}
           </div>
         )}
@@ -457,26 +498,51 @@ export default function StudentSaeSubmissionPage() {
             </CardContent>
           </Card>
 
-          {/* Bouton soumettre */}
-          {!isReadOnly && (
-            <Button
-              type="submit"
-              disabled={isSubmitting || !selectedFile}
-              className="w-full h-9"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  <span>Envoi en cours...</span>
-                </>
-              ) : (
-                <>
-                  <span>Confirmer le rendu</span>
-                  <CheckCircle2 className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          )}
+          {/* Boutons d'action */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            {!isReadOnly ? (
+              <>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || (!selectedFile && !existingSubmission)}
+                  className="flex-1 h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transition-all"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      <span>Enregistrement...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{existingSubmission ? "Sauvegarder les modifications" : "Confirmer le rendu"}</span>
+                      <CheckCircle2 className="w-5 h-5 ml-2" />
+                    </>
+                  )}
+                </Button>
+                
+                {existingSubmission && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsReadOnly(true)}
+                    className="sm:w-1/3 h-12 border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl"
+                  >
+                    Annuler
+                  </Button>
+                )}
+              </>
+            ) : (
+              (
+                <Button
+                  type="button"
+                  onClick={() => setIsReadOnly(false)}
+                  className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md"
+                >
+                  Modifier mon rendu
+                </Button>
+              )
+            )}
+          </div>
         </form>
       </main>
     </div>

@@ -203,9 +203,9 @@ export const saeService = {
     return res.data || res;
   },
 
-  /** DELETE /api/submissions/:submissionId (TEACHER/ADMIN - pour modération galerie) */
-  async deleteSubmission(submissionId) {
-    const res = await apiClient(`/api/submissions/${submissionId}`, {
+  /** DELETE /api/saes/:saeId/submissions/:submissionId (TEACHER/ADMIN - pour modération galerie) */
+  async deleteSubmission(saeId, submissionId) {
+    const res = await apiClient(`/api/saes/${saeId}/submissions/${submissionId}`, {
       method: "DELETE",
     });
     return res.data || res;
@@ -436,6 +436,7 @@ export const saeService = {
 
             // Normaliser au format attendu par SharedGallery
             const studentName =
+              sub.name ||
               sub.student?.name ||
               sub.student ||
               sub.user?.name ||
@@ -444,6 +445,7 @@ export const saeService = {
 
             liveItems.push({
               id: sub.id,
+              saeId: sae.id,
               title: sub.description || sae.title || "Sans titre",
               name: studentName,
               url: sub.url,

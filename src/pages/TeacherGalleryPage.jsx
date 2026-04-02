@@ -7,14 +7,14 @@ import { saeService } from "../services/sae.service";
 export default function TeacherGalleryPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (saeId, id) => {
     if (
       window.confirm(
         "Voulez-vous vraiment cacher/supprimer cette réalisation de la galerie publique ?",
       )
     ) {
       try {
-        await saeService.deleteSubmission(id);
+        await saeService.deleteSubmission(saeId, id);
         setRefreshTrigger((prev) => prev + 1);
       } catch (err) {
         console.error("Erreur lors de la suppression", err);

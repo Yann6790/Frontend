@@ -152,7 +152,8 @@ export default function AdminAccountManagement() {
           </h1>
           <Button 
             onClick={handleCreateTeacherClick}
-            className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
+            variant="admin"
+            className="text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
             Créer un compte Enseignant
@@ -168,7 +169,7 @@ export default function AdminAccountManagement() {
               placeholder="Rechercher un nom ou un email..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full md:max-w-md bg-white border border-slate-300 text-slate-900 pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-medium text-sm transition-all rounded-lg"
+              className="w-full md:max-w-md bg-white border border-slate-300 text-slate-900 pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-medium text-sm transition-all rounded-lg"
             />
           </div>
           
@@ -178,7 +179,7 @@ export default function AdminAccountManagement() {
               <select 
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                  className="bg-white border border-slate-300 text-slate-900 px-4 py-2.5 outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-medium text-sm w-full cursor-pointer rounded-lg transition-all"
+                  className="bg-white border border-slate-300 text-slate-900 px-4 py-2.5 outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-medium text-sm w-full cursor-pointer rounded-lg transition-all"
               >
                 <option value="Tous">Tous</option>
                 <option value="Étudiant">Étudiant</option>
@@ -224,9 +225,9 @@ export default function AdminAccountManagement() {
                     </td>
                     <td className="py-4 px-6 text-center">
                       <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase border ${
-                        user.role === 'TEACHER' ? 'bg-purple-100 text-purple-700 border-purple-200' : 
-                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 border-purple-200' :
-                        'bg-slate-100 text-slate-600 border-slate-200'
+                        user.role === 'TEACHER' ? 'bg-slate-100 text-slate-700 border-slate-200' : 
+                        user.role === 'ADMIN' ? 'bg-slate-800 text-white border-slate-900' :
+                        'bg-slate-50 text-slate-500 border-slate-100'
                       }`}>
                         {user.role}
                       </span>
@@ -299,7 +300,7 @@ export default function AdminAccountManagement() {
                   type="text" 
                   value={newTeacherData.firstname} 
                   onChange={(e) => setNewTeacherData({ ...newTeacherData, firstname: e.target.value })}
-                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-bold text-sm transition-all"
                   required
                   disabled={isCreating}
                 />
@@ -311,7 +312,7 @@ export default function AdminAccountManagement() {
                   type="text" 
                   value={newTeacherData.lastname} 
                   onChange={(e) => setNewTeacherData({ ...newTeacherData, lastname: e.target.value })}
-                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-bold text-sm transition-all"
                   required
                   disabled={isCreating}
                 />
@@ -323,7 +324,7 @@ export default function AdminAccountManagement() {
                   type="email" 
                   value={newTeacherData.email} 
                   onChange={(e) => setNewTeacherData({ ...newTeacherData, email: e.target.value })}
-                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-bold text-sm transition-all"
+                  className="w-full bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-500 font-bold text-sm transition-all"
                   required
                   disabled={isCreating}
                 />
@@ -340,8 +341,9 @@ export default function AdminAccountManagement() {
                 </Button>
                 <Button 
                   type="submit" 
+                  variant="admin"
                   disabled={isCreating}
-                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+                  className="px-6 py-3 font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
                 >
                   {isCreating && <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
                   Créer le compte
@@ -381,8 +383,9 @@ export default function AdminAccountManagement() {
               <div className="w-full mt-4">
                 <Button 
                   type="button" 
+                  variant="admin"
                   onClick={closeSuccessModal}
-                  className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg"
+                  className="w-full px-6 py-3 font-bold text-sm rounded-xl transition-all shadow-lg"
                 >
                   Fermer
                 </Button>

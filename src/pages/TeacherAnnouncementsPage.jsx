@@ -2,6 +2,7 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import IllustratedState from "../components/IllustratedState";
 import { saeService } from "../services/sae.service";
+import { useAuth } from "../context/AuthContext";
 
 const normalizeThematic = (raw) => {
   if (!raw) return [];
@@ -13,6 +14,7 @@ const normalizeThematic = (raw) => {
 };
 
 export default function TeacherAnnouncementsPage() {
+  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [mySaes, setMySaes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,8 +41,58 @@ export default function TeacherAnnouncementsPage() {
         saeService.getAllAnnouncements(),
         saeService.getSaeList(),
       ]);
-      setAnnouncements(Array.isArray(annRes) ? annRes : annRes?.data || []);
-      setMySaes(Array.isArray(saeRes) ? saeRes : saeRes?.data || []);
+      let annList = Array.isArray(annRes) ? annRes : annRes?.data || [];
+      const allSaes = Array.isArray(saeRes) ? saeRes : saeRes?.data || [];
+
+      // ── Filtrage des annonces (uniquement les siennes, sauf ADMIN) ──
+      if (user?.role !== "ADMIN") {
+        annList = annList.filter(
+          (ann) =>
+            ann.userId === user?.id ||
+            ann.authorId === user?.id ||
+            ann.creatorId === user?.id ||
+            ann.authorName === user?.name ||
+            ann.authorEmail === user?.email,
+        );
+      }
+
+      // ── Filtrage selon rôle et participation ──
+      if (user?.role === "ADMIN") {
+        setMySaes(allSaes);
+      } else {
+        const owned = allSaes.filter((s) => s.createdBy?.email === user?.email);
+        const ownedIds = new Set(owned.map((s) => s.id));
+        const others = allSaes.filter((s) => !ownedIds.has(s.id));
+
+        const checks = await Promise.allSettled(
+          others.map((s) =>
+            saeService
+              .getInvitations(s.id)
+              .then((invs) => {
+                const list = Array.isArray(invs) ? invs : invs?.data || [];
+                const isInvited = list.some(
+                  (i) =>
+                    i.userId === user?.id ||
+                    i.email === user?.email ||
+                    (i.name?.firstname?.toLowerCase() ===
+                      user?.name?.firstname?.toLowerCase() &&
+                      i.name?.lastname?.toLowerCase() ===
+                        user?.name?.lastname?.toLowerCase()),
+                );
+                return isInvited ? s : null;
+              })
+              .catch(() => null),
+          ),
+        );
+
+        const invited = checks
+          .filter((r) => r.status === "fulfilled" && r.value)
+          .map((r) => r.value);
+
+        setMySaes([...owned, ...invited]);
+      }
+
+      setAnnouncements(annList);
     } catch (err) {
       console.error("Erreur chargement données", err);
       setFetchError(

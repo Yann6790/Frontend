@@ -14,12 +14,48 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 
+// Helper robuste pour extraire le nom complet d'un étudiant (Objet ou String)
+const getFullName = (name) => {
+  if (!name) return "";
+  if (typeof name === "string") return name;
+  const first = name.firstname || "";
+  const last = name.lastname || "";
+  return `${first} ${last}`.trim();
+};
+
+// Helper pour extraire les initiales (pour l'avatar)
+const getInitials = (name) => {
+  if (!name) return "?";
+  if (typeof name === "string") {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0][0]?.toUpperCase() || "?";
+  }
+  const first = name.firstname?.[0] || "";
+  const last = name.lastname?.[0] || "";
+  return (first + last).toUpperCase() || "?";
+};
+
 export default function SharedGallery({
   canModerate = false,
   isAdminView = false,
   refreshTrigger = 0,
   onDelete = () => {},
 }) {
+  // Styles conditionnels (Ardoise pour Admin, Violet pour le reste)
+  const primaryBg = isAdminView ? "bg-slate-800" : "bg-purple-600";
+  const primaryText = isAdminView ? "text-slate-800" : "text-purple-600";
+  const primaryBorder = isAdminView ? "border-slate-800" : "border-purple-600";
+  const accentBg = isAdminView ? "bg-slate-100" : "bg-purple-50";
+  const accentText = isAdminView ? "text-slate-700" : "text-purple-700";
+  const accentBorder = isAdminView ? "border-slate-200" : "border-purple-300";
+  const ringFocus = isAdminView ? "focus:ring-slate-100" : "focus:ring-purple-100";
+  const ringFocusBorder = isAdminView ? "focus:border-slate-500" : "focus:border-purple-500";
+  const badgeBg = isAdminView ? "bg-slate-200" : "bg-purple-100";
+  const badgeText = isAdminView ? "text-slate-800" : "text-purple-800";
+
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
@@ -111,14 +147,12 @@ export default function SharedGallery({
 
   const displayedProjects = useMemo(() => {
     let filtered = projects.filter((project) => {
-      const studentName = project.name
-        ? `${project.name.firstname || ""} ${project.name.lastname || ""}`.toLowerCase()
-        : "";
+      const fullName = getFullName(project.name);
       const projTitle = (project.title || "").toLowerCase();
 
       const matchSearch =
         projTitle.includes(searchTerm.toLowerCase()) ||
-        studentName.includes(searchTerm.toLowerCase());
+        fullName.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchMatiere =
         selectedMatieres.length === 0 ||
@@ -156,7 +190,7 @@ export default function SharedGallery({
               placeholder="Recherchez par nom d'étudiant ou de projet"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 focus:bg-white focus:ring-4 focus:ring-purple-100 border border-slate-200 rounded-lg py-3 px-6 text-base font-medium outline-none transition-all placeholder-slate-400"
+              className={`w-full bg-slate-50 focus:bg-white focus:ring-4 ${ringFocus} border border-slate-200 rounded-lg py-3 px-6 text-base font-medium outline-none transition-all placeholder-slate-400`}
             />
           </div>
 
@@ -167,9 +201,10 @@ export default function SharedGallery({
           >
             {/* 1. Date de rendu */}
             <div className="relative">
-              <button
+              <Button
                 onClick={() => toggleMenu("date")}
-                className={`px-5 py-2 border rounded-md text-sm font-medium flex items-center gap-2 transition-colors shadow-sm ${sortDate || isDateMenuOpen ? "bg-purple-50 border-purple-300 text-purple-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                variant={isAdminView ? (sortDate || isDateMenuOpen ? "admin" : "adminOutline") : "outline"}
+                className={`px-5 py-2 text-sm font-medium flex items-center gap-2 transition-colors shadow-sm ${!isAdminView && (sortDate || isDateMenuOpen) ? "bg-purple-50 border-purple-300 text-purple-700" : ""}`}
               >
                 Date de rendu
                 <svg
@@ -185,7 +220,7 @@ export default function SharedGallery({
                     d="M19 9l-7 7-7-7"
                   ></path>
                 </svg>
-              </button>
+              </Button>
               {isDateMenuOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden py-1 z-20">
                   <button
@@ -194,7 +229,7 @@ export default function SharedGallery({
                       setSortNote(null);
                       setIsDateMenuOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 hover:bg-purple-50 text-sm ${sortDate === "asc" ? "bg-purple-50 text-purple-700 font-bold" : "text-gray-700"}`}
+                    className={`w-full text-left px-4 py-2 hover:${accentBg} text-sm ${sortDate === "asc" ? `${accentBg} ${accentText} font-bold` : "text-gray-700"}`}
                   >
                     Croissante
                   </button>
@@ -204,7 +239,7 @@ export default function SharedGallery({
                       setSortNote(null);
                       setIsDateMenuOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 hover:bg-purple-50 text-sm ${sortDate === "desc" ? "bg-purple-50 text-purple-700 font-bold" : "text-gray-700"}`}
+                    className={`w-full text-left px-4 py-2 hover:${accentBg} text-sm ${sortDate === "desc" ? `${accentBg} ${accentText} font-bold` : "text-gray-700"}`}
                   >
                     Décroissante
                   </button>
@@ -222,13 +257,14 @@ export default function SharedGallery({
 
             {/* 2. Matière */}
             <div className="relative">
-              <button
+              <Button
                 onClick={() => toggleMenu("matiere")}
-                className={`px-5 py-2 border rounded-md text-sm font-medium flex items-center gap-2 transition-colors shadow-sm ${selectedMatieres.length > 0 || isMatiereMenuOpen ? "bg-purple-50 border-purple-300 text-purple-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                variant={isAdminView ? (selectedMatieres.length > 0 || isMatiereMenuOpen ? "admin" : "adminOutline") : "outline"}
+                className={`px-5 py-2 text-sm font-medium flex items-center gap-2 transition-colors shadow-sm ${!isAdminView && (selectedMatieres.length > 0 || isMatiereMenuOpen) ? "bg-purple-50 border-purple-300 text-purple-700" : ""}`}
               >
                 Matière{" "}
                 {selectedMatieres.length > 0 && (
-                  <span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded-md text-xs font-bold leading-none">
+                  <span className={`${isAdminView ? 'bg-white text-slate-800' : 'bg-purple-200 text-purple-800'} px-2 py-0.5 rounded-md text-xs font-bold leading-none`}>
                     {selectedMatieres.length}
                   </span>
                 )}
@@ -245,7 +281,7 @@ export default function SharedGallery({
                     d="M19 9l-7 7-7-7"
                   ></path>
                 </svg>
-              </button>
+              </Button>
               {isMatiereMenuOpen && (
                 <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden py-2 z-20 flex flex-col gap-1 px-3">
                   {allMatieres.map((matiere) => (
@@ -257,7 +293,7 @@ export default function SharedGallery({
                         type="checkbox"
                         checked={selectedMatieres.includes(matiere)}
                         onChange={() => handleMatiereToggle(matiere)}
-                        className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                        className={`w-4 h-4 ${primaryText} rounded border-gray-300 ${ringFocusBorder}`}
                       />
                       <span className="text-sm font-medium text-gray-700">
                         {matiere}
@@ -270,13 +306,14 @@ export default function SharedGallery({
 
             {/* 4. Année */}
             <div className="relative">
-              <button
+              <Button
                 onClick={() => toggleMenu("promo")}
-                className={`px-5 py-2 border rounded-md text-sm font-medium flex items-center gap-2 transition-colors shadow-sm ${selectedPromos.length > 0 || isPromoMenuOpen ? "bg-purple-50 border-purple-300 text-purple-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                variant={isAdminView ? (selectedPromos.length > 0 || isPromoMenuOpen ? "admin" : "adminOutline") : "outline"}
+                className={`px-5 py-2 text-sm font-medium flex items-center gap-2 transition-colors shadow-sm ${!isAdminView && (selectedPromos.length > 0 || isPromoMenuOpen) ? "bg-purple-50 border-purple-300 text-purple-700" : ""}`}
               >
                 Année{" "}
                 {selectedPromos.length > 0 && (
-                  <span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded-md text-xs font-bold leading-none">
+                  <span className={`${isAdminView ? 'bg-white text-slate-800' : 'bg-purple-200 text-purple-800'} px-2 py-0.5 rounded-md text-xs font-bold leading-none`}>
                     {selectedPromos.length}
                   </span>
                 )}
@@ -293,7 +330,7 @@ export default function SharedGallery({
                     d="M19 9l-7 7-7-7"
                   ></path>
                 </svg>
-              </button>
+              </Button>
               {isPromoMenuOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden py-2 z-20 flex flex-col gap-1 px-3">
                   {allPromos.map((promo) => (
@@ -305,7 +342,7 @@ export default function SharedGallery({
                         type="checkbox"
                         checked={selectedPromos.includes(promo)}
                         onChange={() => handlePromoToggle(promo)}
-                        className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                        className={`w-4 h-4 ${primaryText} rounded border-gray-300 ${ringFocusBorder}`}
                       />
                       <span className="text-sm font-medium text-gray-700">
                         {promo}
@@ -356,7 +393,7 @@ export default function SharedGallery({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDelete(project.id);
+                      onDelete(project.saeId, project.id);
                     }}
                     className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-red-500 hover:text-white backdrop-blur-md rounded-full text-red-500 shadow-sm border border-red-100 transition-all scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
                     title="Supprimer la réalisation"
@@ -378,7 +415,7 @@ export default function SharedGallery({
                     </div>
                   )}
                   {project.year && (
-                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-lg text-[10px] font-black text-purple-800 border border-purple-100 uppercase tracking-widest">
+                    <div className={`absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-lg text-[10px] font-black ${isAdminView ? 'text-slate-800 border-slate-200' : 'text-purple-800 border-purple-100'} border uppercase tracking-widest`}>
                       {project.year}
                     </div>
                   )}
@@ -394,14 +431,13 @@ export default function SharedGallery({
 
                   {project.name ? (
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-                        <span className="text-[10px] font-black uppercase">
-                          {(project.name.firstname?.[0] || "") +
-                            (project.name.lastname?.[0] || "")}
-                        </span>
-                      </div>
+                    <div className={`w-7 h-7 rounded-lg ${accentBg} border ${accentBorder} flex items-center justify-center ${primaryText} shrink-0`}>
+                      <span className="text-[10px] font-black uppercase">
+                        {getInitials(project.name)}
+                      </span>
+                    </div>
                       <p className="text-gray-600 font-bold text-xs truncate">
-                        {project.name.firstname} {project.name.lastname}
+                        {getFullName(project.name)}
                       </p>
                     </div>
                   ) : (
@@ -419,13 +455,13 @@ export default function SharedGallery({
                   <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
                     <div className="flex flex-wrap gap-2">
                       {project.thematic && (
-                        <span className="bg-purple-50 text-purple-600 text-[10px] font-black uppercase px-2 py-1 rounded-md border border-purple-100 tracking-tighter">
+                        <span className={`${accentBg} ${primaryText} text-[10px] font-black uppercase px-2 py-1 rounded-md border ${accentBorder} tracking-tighter`}>
                           {project.thematic}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-purple-600 font-black text-[10px] uppercase tracking-widest">
+                    <div className={`flex items-center gap-1.5 ${primaryText} font-black text-[10px] uppercase tracking-widest`}>
                       Voir <ChevronDown className="w-3 h-3 -rotate-90" />
                     </div>
                   </div>
@@ -506,8 +542,7 @@ export default function SharedGallery({
                       </DialogTitle>
                       {selectedProject.name && (
                         <p className="text-sm text-slate-600">
-                          Réalisé par {selectedProject.name.firstname}{" "}
-                          {selectedProject.name.lastname}
+                          Réalisé par {getFullName(selectedProject.name)}
                         </p>
                       )}
                     </div>
@@ -543,7 +578,7 @@ export default function SharedGallery({
                         );
                       }
                     }}
-                    className="w-full"
+                    className={`w-full ${isAdminView ? 'bg-slate-800 hover:bg-slate-900 text-white' : ''}`}
                   >
                     Explorer le rendu <ExternalLink className="h-4 w-4" />
                   </Button>

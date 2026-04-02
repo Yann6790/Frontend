@@ -367,35 +367,56 @@ export default function StudentSaeDetailPage() {
               </h2>
               {mySubmission ? (
                 <div className="space-y-6">
-                  {/* Success State */}
-                  <div className="flex items-start gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <CheckCircle2 className="h-8 w-8 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-bold text-green-900 text-lg">
-                        Rendu soumis ✓
-                      </p>
-                      <p className="text-sm text-green-700 mt-1">
-                        Le{" "}
-                        {new Date(mySubmission.submittedAt).toLocaleDateString(
-                          "fr-FR",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )}
-                      </p>
+                  {/* Statut du rendu */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-4 p-4 bg-green-50 border border-green-200 rounded-xl flex-1">
+                      <CheckCircle2 className="h-8 w-8 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-bold text-green-900 text-lg">
+                          Rendu soumis ✓
+                        </p>
+                        <p className="text-sm text-green-700 mt-1">
+                          Le{" "}
+                          {new Date(mySubmission.submittedAt).toLocaleDateString(
+                            "fr-FR",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </p>
+                      </div>
                     </div>
+
+                    {mySubmission.isLate && (
+                      <div className="flex items-start gap-4 p-4 bg-red-50 border border-red-200 rounded-xl flex-1">
+                        <Clock className="h-8 w-8 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-red-900 text-lg">Retard !</p>
+                          <p className="text-sm text-red-700 mt-1">
+                            Soumis avec {mySubmission.lateTime || "du retard"}.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <Link to={`/sae/${id}/rendu?mode=view`} className="block">
-                    <Button className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg">
-                      <FileText className="h-5 w-5 mr-2" />
-                      Consulter mon rendu
-                    </Button>
-                  </Link>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Link to={`/sae/${id}/rendu?mode=view`} className="flex-1">
+                      <Button className="w-full h-12 bg-white text-purple-600 border border-purple-200 hover:bg-slate-50 font-semibold rounded-lg shadow-sm">
+                        <FileText className="h-5 w-5 mr-2" />
+                        Consulter mon rendu
+                      </Button>
+                    </Link>
+                    <Link to={`/sae/${id}/rendu?mode=edit`} className="flex-1">
+                      <Button className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition-shadow">
+                        Modifier mon rendu
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-6">
