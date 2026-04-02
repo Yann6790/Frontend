@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import IllustratedState from "../components/IllustratedState";
 import { Badge } from "../components/ui/badge";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { saeService } from "../services/sae.service";
 
 const normalizeThematic = (raw) => {
@@ -14,6 +15,7 @@ const normalizeThematic = (raw) => {
 };
 
 export default function StudentAnnouncementsPage() {
+  usePageTitle("Annonces");
   const [announcements, setAnnouncements] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");

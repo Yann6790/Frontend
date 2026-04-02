@@ -13,9 +13,11 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import IllustratedState from "../components/IllustratedState";
 import { Spinner } from "../components/ui/spinner";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { saeService } from "../services/sae.service";
 
 export default function StudentSaeDetailPage() {
+  usePageTitle("Détail SAE");
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("presentation");
@@ -378,16 +380,15 @@ export default function StudentSaeDetailPage() {
                         </p>
                         <p className="text-sm text-green-700 mt-1">
                           Le{" "}
-                          {new Date(mySubmission.submittedAt).toLocaleDateString(
-                            "fr-FR",
-                            {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            },
-                          )}
+                          {new Date(
+                            mySubmission.submittedAt,
+                          ).toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                     </div>
@@ -396,7 +397,9 @@ export default function StudentSaeDetailPage() {
                       <div className="flex items-start gap-4 p-4 bg-red-50 border border-red-200 rounded-xl flex-1">
                         <Clock className="h-8 w-8 text-red-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-bold text-red-900 text-lg">Retard !</p>
+                          <p className="font-bold text-red-900 text-lg">
+                            Retard !
+                          </p>
                           <p className="text-sm text-red-700 mt-1">
                             Soumis avec {mySubmission.lateTime || "du retard"}.
                           </p>

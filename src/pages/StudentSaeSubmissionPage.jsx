@@ -8,12 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -22,20 +17,23 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Spinner } from "../components/ui/spinner";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
 
 export default function StudentSaeSubmissionPage() {
+  usePageTitle("Soumettre un rendu");
   const { id } = useParams();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const forcedReadOnly = searchParams.get("mode") === "view";
 
   // ── États page ──
   const [isLoading, setIsLoading] = useState(true);
   const [existingSubmission, setExistingSubmission] = useState(null);
-  const isReadOnly = searchParams.get("mode") !== "edit" && (forcedReadOnly || !!existingSubmission);
-  
+  const isReadOnly =
+    searchParams.get("mode") !== "edit" &&
+    (forcedReadOnly || !!existingSubmission);
+
   const setIsReadOnly = (val) => {
     setSearchParams({ mode: val ? "view" : "edit" }, { replace: true });
   };
@@ -106,7 +104,9 @@ export default function StudentSaeSubmissionPage() {
         // Charger les grades détaillés si soumis
         try {
           setIsLoadingGrades(true);
-          const gradesRes = await saeService.getMyGrades().catch(() => ({ data: [] }));
+          const gradesRes = await saeService
+            .getMyGrades()
+            .catch(() => ({ data: [] }));
           // Le service retourne: { data: {..., data: [...] } } donc on accède à gradesRes.data.data
           let gradesArray = [];
           if (Array.isArray(gradesRes?.data?.data)) {
@@ -128,7 +128,7 @@ export default function StudentSaeSubmissionPage() {
       }
     };
     init();
-  }, [id]);
+  }, [id, searchParams]);
 
   // ────────────────────────────────────────────────────────────
   // Drag & Drop
@@ -188,7 +188,7 @@ export default function StudentSaeSubmissionPage() {
         fileName = selectedFile.name;
         mimeType = selectedFile.type;
       }
-      
+
       if (!fileUrl) throw new Error("L'URL du fichier est manquante.");
 
       // Étape 2 : Upload de l'image si fournie
@@ -288,7 +288,13 @@ export default function StudentSaeSubmissionPage() {
                 Soumis le{" "}
                 {new Date(existingSubmission.submittedAt).toLocaleDateString(
                   "fr-FR",
-                  { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+                  {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  },
                 )}
               </span>
             </div>
@@ -310,7 +316,10 @@ export default function StudentSaeSubmissionPage() {
             <Clock className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600" />
             <div className="text-sm">
               <p className="font-bold">Attention : Date limite dépassée</p>
-              <p>Toute modification apportée maintenant marquera votre rendu comme étant <strong>en retard</strong>.</p>
+              <p>
+                Toute modification apportée maintenant marquera votre rendu
+                comme étant <strong>en retard</strong>.
+              </p>
             </div>
           </div>
         )}
@@ -322,7 +331,8 @@ export default function StudentSaeSubmissionPage() {
         )}
 
         {/* Section des notes détaillées */}
-        {existingSubmission && !isLoadingGrades && (
+        {existingSubmission &&
+          !isLoadingGrades &&
           (() => {
             // Chercher les grades pour cette SAE par titre ou par ID
             if (!Array.isArray(myGrades) || myGrades.length === 0) {
@@ -337,7 +347,8 @@ export default function StudentSaeSubmissionPage() {
                           Notes en attente
                         </p>
                         <p className="text-slate-600 text-xs mt-1">
-                          Vos notes n'ont pas encore été attribuées par le professeur.
+                          Vos notes n'ont pas encore été attribuées par le
+                          professeur.
                         </p>
                       </div>
                     </div>
@@ -345,12 +356,21 @@ export default function StudentSaeSubmissionPage() {
                 </Card>
               );
             }
-            
+
             const currentGrade = myGrades.find(
-              g => (g.saeTitle && saeTitle && g.saeTitle.toLowerCase().trim() === saeTitle.toLowerCase().trim())
+              (g) =>
+                g.saeTitle &&
+                saeTitle &&
+                g.saeTitle.toLowerCase().trim() ===
+                  saeTitle.toLowerCase().trim(),
             );
-            
-            if (currentGrade && currentGrade.grades && Array.isArray(currentGrade.grades) && currentGrade.grades.length > 0) {
+
+            if (
+              currentGrade &&
+              currentGrade.grades &&
+              Array.isArray(currentGrade.grades) &&
+              currentGrade.grades.length > 0
+            ) {
               return (
                 <Card className="ring-0 shadow-none border-2 border-purple-100 bg-purple-50">
                   <CardHeader className="pb-3">
@@ -379,7 +399,9 @@ export default function StudentSaeSubmissionPage() {
                       ))}
                     </div>
                     <div className="flex items-center justify-between p-3 bg-purple-100 rounded-lg border border-purple-300">
-                      <p className="text-sm font-bold text-purple-900">Moyenne</p>
+                      <p className="text-sm font-bold text-purple-900">
+                        Moyenne
+                      </p>
                       <p className="text-xl font-bold text-purple-600">
                         {currentGrade.average}/20
                       </p>
@@ -388,7 +410,7 @@ export default function StudentSaeSubmissionPage() {
                 </Card>
               );
             }
-            
+
             // Grades existent mais ne correspondent pas à cette SAE
             return (
               <Card className="ring-0 shadow-none border-2 border-slate-200 bg-slate-50">
@@ -400,15 +422,15 @@ export default function StudentSaeSubmissionPage() {
                         Notes en attente
                       </p>
                       <p className="text-slate-600 text-xs mt-1">
-                        Vos notes n'ont pas encore été attribuées par le professeur.
+                        Vos notes n'ont pas encore été attribuées par le
+                        professeur.
                       </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             );
-          })()
-        )}
+          })()}
 
         <form
           onSubmit={handleSubmit}
@@ -624,10 +646,14 @@ export default function StudentSaeSubmissionPage() {
                   disabled={!selectedFile && !existingSubmission}
                   className="flex-1 h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transition-all"
                 >
-                  <span>{existingSubmission ? "Sauvegarder les modifications" : "Confirmer le rendu"}</span>
+                  <span>
+                    {existingSubmission
+                      ? "Sauvegarder les modifications"
+                      : "Confirmer le rendu"}
+                  </span>
                   <CheckCircle2 className="w-5 h-5 ml-2" />
                 </Button>
-                
+
                 {existingSubmission && (
                   <Button
                     type="button"
@@ -640,15 +666,13 @@ export default function StudentSaeSubmissionPage() {
                 )}
               </>
             ) : (
-              (
-                <Button
-                  type="button"
-                  onClick={() => setIsReadOnly(false)}
-                  className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md"
-                >
-                  Modifier mon rendu
-                </Button>
-              )
+              <Button
+                type="button"
+                onClick={() => setIsReadOnly(false)}
+                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md"
+              >
+                Modifier mon rendu
+              </Button>
             )}
           </div>
         </form>

@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import * as z from "zod";
 import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { authService } from "../services/auth.service";
 
 // Schéma de validation Zod robuste
@@ -28,6 +29,7 @@ const registerSchema = z
   });
 
 const RegisterPage = () => {
+  usePageTitle("Inscription");
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
 

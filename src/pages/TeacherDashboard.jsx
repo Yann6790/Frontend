@@ -3,15 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Eye, EyeOff } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import mmiLogo from "../Images/mmilogo.png";
 import { Spinner } from "../components/ui/spinner";
+import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
+import mmiLogo from "../Images/mmilogo.png";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
 
 const ALL_SEMESTRES = ["Tous", "S1", "S2", "S3", "S4", "S5", "S6"];
 
 export default function TeacherDashboard() {
+  usePageTitle("Tableau de bord");
   const { user, isLoading: authLoading } = useAuth();
   const [saes, setSaes] = useState([]);
   const [semesters, setSemesters] = useState([]);

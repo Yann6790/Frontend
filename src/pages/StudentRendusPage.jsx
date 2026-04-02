@@ -2,12 +2,14 @@ import { Badge } from "@/components/ui/badge";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import IllustratedState from "../components/IllustratedState";
+import { Spinner } from "../components/ui/spinner";
 import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
-import { Spinner } from "../components/ui/spinner";
 
 export default function StudentRendusPage() {
+  usePageTitle("Mes rendus");
   const { user } = useAuth();
 
   const [selectedSemestre, setSelectedSemestre] = useState("Tous");
@@ -43,8 +45,8 @@ export default function StudentRendusPage() {
       const myGradesArray = Array.isArray(gradesDataRes?.data)
         ? gradesDataRes.data
         : Array.isArray(gradesDataRes)
-        ? gradesDataRes
-        : [];
+          ? gradesDataRes
+          : [];
       const sems = Array.isArray(semestersRes)
         ? semestersRes
         : semestersRes?.data || [];

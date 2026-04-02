@@ -1,6 +1,8 @@
 import SharedGallery from "../components/SharedGallery";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export default function StudentGalleryPage() {
+  usePageTitle("Galerie des projets");
   return (
     <div className="min-h-screen bg-white font-montserrat">
       <main className="flex w-full flex-col gap-8 px-6 py-12 pt-28 sm:px-8">

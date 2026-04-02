@@ -1,9 +1,11 @@
 import { ChevronLeft, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { saeService } from "../services/sae.service";
 
 export default function TeacherAdvancedViewPage() {
+  usePageTitle("Vue avancée");
   const [realizations, setRealizations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 

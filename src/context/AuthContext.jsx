@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/auth.service';
+import { createContext, useContext, useEffect, useState } from "react";
+import { authService } from "../services/auth.service";
 
 const AuthContext = createContext(null);
 
@@ -12,12 +12,15 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
       const data = await authService.getMe();
-      console.log('[AuthContext] GET /api/auth/me response:', JSON.stringify(data, null, 2));
+      console.log(
+        "[AuthContext] GET /api/auth/me response:",
+        JSON.stringify(data, null, 2),
+      );
       // L'API renvoie { success: true, data: { email, name, role, isProfileValidated, ... } }
       // On extrait l'objet utilisateur réel depuis data.data
       const userData = data.data || data.user || data;
       setUser(userData);
-    } catch (error) {
+    } catch {
       // Si la requête échoue (ex: 401), l'utilisateur n'est pas connecté
       setUser(null);
     } finally {
@@ -50,17 +53,15 @@ export const AuthProvider = ({ children }) => {
     signOut,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth doit être utilisé à l\'intérieur d\'un AuthProvider');
+    throw new Error(
+      "useAuth doit être utilisé à l'intérieur d'un AuthProvider",
+    );
   }
   return context;
 };

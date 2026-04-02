@@ -2,9 +2,11 @@ import { Settings2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import SharedGallery from "../components/SharedGallery";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { saeService } from "../services/sae.service";
 
 export default function TeacherGalleryPage() {
+  usePageTitle("Galerie");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleDelete = async (saeId, id) => {

@@ -5,19 +5,24 @@ import TeacherNavbar from "../components/TeacherNavbar";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { apiClient } from "../lib/api";
 import { authService } from "../services/auth.service";
 
 export default function ProfilePage() {
+  usePageTitle("Profil");
   const location = useLocation();
   const { user, refreshUser } = useAuth();
 
   const isTeacher = user?.role === "TEACHER";
-  const backLink = location.state?.from || (isTeacher ? "/teacher-dashboard" : "/student-dashboard");
 
-  const [notification, setNotification] = useState({ message: '', type: '' });
+  const [notification, setNotification] = useState({ message: "", type: "" });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
+  const [passwords, setPasswords] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
 
   // Nouveaux états pour l'avatar
   const [selectedFile, setSelectedFile] = useState(null);
@@ -27,13 +32,16 @@ export default function ProfilePage() {
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-        setNotification({ message: 'Format non supporté (PNG, JPG, WEBP uniquement).', type: 'error' });
+      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+        setNotification({
+          message: "Format non supporté (PNG, JPG, WEBP uniquement).",
+          type: "error",
+        });
         return;
       }
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
-      setNotification({ message: '', type: '' });
+      setNotification({ message: "", type: "" });
     }
   };
 
@@ -50,16 +58,16 @@ export default function ProfilePage() {
   const handleSaveAvatar = async () => {
     if (!selectedFile) return;
     setIsUploadingAvatar(true);
-    setNotification({ message: '', type: '' });
+    setNotification({ message: "", type: "" });
 
     try {
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append("file", selectedFile);
 
       // Action A: Upload
-      const uploadRes = await apiClient('/api/resources/upload-image', {
-        method: 'POST',
-        body: formData
+      const uploadRes = await apiClient("/api/resources/upload-image", {
+        method: "POST",
+        body: formData,
       });
 
       const newAvatarUrl = uploadRes.data?.url || uploadRes.url;
@@ -70,10 +78,16 @@ export default function ProfilePage() {
       // Action C: Rafraîchir
       await refreshUser();
 
-      setNotification({ message: "Avatar mis a jour avec succes.", type: "success" });
+      setNotification({
+        message: "Avatar mis a jour avec succes.",
+        type: "success",
+      });
       cancelAvatarChange();
     } catch (err) {
-      setNotification({ message: err.message || "Erreur lors de la mise a jour", type: "error" });
+      setNotification({
+        message: err.message || "Erreur lors de la mise a jour",
+        type: "error",
+      });
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -81,15 +95,22 @@ export default function ProfilePage() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    setNotification({ message: '', type: '' });
+    setNotification({ message: "", type: "" });
 
     if (passwords.newPassword !== passwords.confirmNewPassword) {
-      setNotification({ message: "Le nouveau mot de passe et sa confirmation ne correspondent pas.", type: "error" });
+      setNotification({
+        message:
+          "Le nouveau mot de passe et sa confirmation ne correspondent pas.",
+        type: "error",
+      });
       return;
     }
 
     if (passwords.newPassword.length < 6) {
-      setNotification({ message: "Le nouveau mot de passe doit faire au moins 6 caracteres.", type: "error" });
+      setNotification({
+        message: "Le nouveau mot de passe doit faire au moins 6 caracteres.",
+        type: "error",
+      });
       return;
     }
 
@@ -98,17 +119,27 @@ export default function ProfilePage() {
     try {
       const res = await authService.changePassword({
         oldPassword: passwords.oldPassword,
-        newPassword: passwords.newPassword
+        newPassword: passwords.newPassword,
       });
 
       if (res && res.success === false) {
         throw new Error(res.message || "Erreur lors de la modification");
       }
 
-      setNotification({ message: "Mot de passe modifie avec succes.", type: "success" });
-      setPasswords({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
+      setNotification({
+        message: "Mot de passe modifie avec succes.",
+        type: "success",
+      });
+      setPasswords({
+        oldPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
     } catch (err) {
-      setNotification({ message: err.message || "Erreur lors de la modification", type: "error" });
+      setNotification({
+        message: err.message || "Erreur lors de la modification",
+        type: "error",
+      });
     } finally {
       setIsChangingPassword(false);
     }
@@ -132,11 +163,13 @@ export default function ProfilePage() {
         </section>
 
         {notification.message && (
-          <div className={`rounded-2xl border px-6 py-4 text-sm font-medium ${
-            notification.type === "error"
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-green-200 bg-green-50 text-green-700"
-          }`}>
+          <div
+            className={`rounded-2xl border px-6 py-4 text-sm font-medium ${
+              notification.type === "error"
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-green-200 bg-green-50 text-green-700"
+            }`}
+          >
             {notification.message}
           </div>
         )}
@@ -146,7 +179,7 @@ export default function ProfilePage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <div className="mb-6 flex flex-col items-center">
                 <div className="relative mb-4 h-24 w-24 overflow-hidden rounded-full bg-slate-100 shadow-md">
-                  {(previewUrl || user?.imageUrl) ? (
+                  {previewUrl || user?.imageUrl ? (
                     <img
                       src={previewUrl || user?.imageUrl}
                       alt="Avatar"
@@ -154,7 +187,9 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-3xl font-black uppercase text-slate-700">
-                      {user?.firstname?.[0] || user?.name?.firstname?.[0] || "U"}
+                      {user?.firstname?.[0] ||
+                        user?.name?.firstname?.[0] ||
+                        "U"}
                     </div>
                   )}
                   <label
@@ -223,7 +258,6 @@ export default function ProfilePage() {
               </h2>
 
               <div className="space-y-4">
-
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Nom complet
@@ -306,7 +340,10 @@ export default function ProfilePage() {
                     type="password"
                     value={passwords.oldPassword}
                     onChange={(e) =>
-                      setPasswords({ ...passwords, oldPassword: e.target.value })
+                      setPasswords({
+                        ...passwords,
+                        oldPassword: e.target.value,
+                      })
                     }
                     placeholder="Saisissez votre mot de passe actuel"
                     className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
@@ -322,7 +359,10 @@ export default function ProfilePage() {
                     type="password"
                     value={passwords.newPassword}
                     onChange={(e) =>
-                      setPasswords({ ...passwords, newPassword: e.target.value })
+                      setPasswords({
+                        ...passwords,
+                        newPassword: e.target.value,
+                      })
                     }
                     placeholder="Saisissez le nouveau mot de passe"
                     className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
@@ -338,7 +378,10 @@ export default function ProfilePage() {
                     type="password"
                     value={passwords.confirmNewPassword}
                     onChange={(e) =>
-                      setPasswords({ ...passwords, confirmNewPassword: e.target.value })
+                      setPasswords({
+                        ...passwords,
+                        confirmNewPassword: e.target.value,
+                      })
                     }
                     placeholder="Confirmez le nouveau mot de passe"
                     className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"

@@ -4,10 +4,12 @@ import { ImagePlus, UploadCloud, UserCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { authService } from "../services/auth.service";
 import { resourcesService } from "../services/resources.service";
 
 export default function OnboardingPage() {
+  usePageTitle("Configuration");
   const [promotions, setPromotions] = useState([]);
   const [groups, setGroups] = useState([]);
 

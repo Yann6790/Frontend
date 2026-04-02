@@ -1,19 +1,12 @@
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import IllustratedState from "../components/IllustratedState";
-import { saeService } from "../services/sae.service";
 import { useAuth } from "../context/AuthContext";
-
-const normalizeThematic = (raw) => {
-  if (!raw) return [];
-  const arr = Array.isArray(raw) ? raw : [raw];
-  return arr.map((t) => {
-    if (typeof t === "string") return t;
-    return t.label ?? t.code ?? t.name ?? t.id ?? String(t);
-  });
-};
+import { usePageTitle } from "../hooks/usePageTitle";
+import { saeService } from "../services/sae.service";
 
 export default function TeacherAnnouncementsPage() {
+  usePageTitle("Annonces");
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [mySaes, setMySaes] = useState([]);
@@ -27,7 +20,6 @@ export default function TeacherAnnouncementsPage() {
   const [selectedSaeId, setSelectedSaeId] = useState("");
   const [titre, setTitre] = useState("");
   const [contenu, setContenu] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
 
   // History Filter State
   const [filterSaeId, setFilterSaeId] = useState("");
@@ -108,7 +100,7 @@ export default function TeacherAnnouncementsPage() {
     loadData();
   }, [loadData]);
 
-  const selectedSae = useMemo(
+  const unusedSelectedSae = useMemo(
     () => mySaes.find((s) => s.id === selectedSaeId),
     [mySaes, selectedSaeId],
   );
@@ -118,7 +110,6 @@ export default function TeacherAnnouncementsPage() {
     setSelectedSaeId("");
     setTitre("");
     setContenu("");
-    setIsAdding(false);
     setShowForm(false);
   };
 
@@ -152,7 +143,6 @@ export default function TeacherAnnouncementsPage() {
     setSelectedSaeId(ann.saeId);
     setTitre(ann.title);
     setContenu(ann.content);
-    setIsAdding(true);
   };
 
   const handleDelete = async (saeId, annId) => {
@@ -169,11 +159,6 @@ export default function TeacherAnnouncementsPage() {
     if (!filterSaeId) return announcements;
     return announcements.filter((a) => a.saeId === filterSaeId);
   }, [announcements, filterSaeId]);
-
-  const selectedBannerSae = useMemo(() => {
-    if (!filterSaeId) return null;
-    return mySaes.find((s) => s.id === filterSaeId);
-  }, [mySaes, filterSaeId]);
 
   const isApiFetchFail =
     !!fetchError && /(failed to fetch|network|fetch)/i.test(fetchError);

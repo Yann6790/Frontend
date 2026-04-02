@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { saeService } from "../services/sae.service";
 import IllustratedState from "./IllustratedState";
-import { Spinner } from "./ui/spinner";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
@@ -15,6 +14,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "./ui/dialog";
+import { Spinner } from "./ui/spinner";
 
 // Helper robuste pour extraire le nom complet d'un étudiant (Objet ou String)
 const getFullName = (name) => {
@@ -48,16 +48,12 @@ export default function SharedGallery({
   onHide = () => {},
 }) {
   // Styles conditionnels (Ardoise pour Admin, Violet pour le reste)
-  const primaryBg = isAdminView ? "bg-slate-800" : "bg-purple-600";
   const primaryText = isAdminView ? "text-slate-800" : "text-purple-600";
-  const primaryBorder = isAdminView ? "border-slate-800" : "border-purple-600";
   const accentBg = isAdminView ? "bg-slate-100" : "bg-purple-50";
   const accentText = isAdminView ? "text-slate-700" : "text-purple-700";
   const accentBorder = isAdminView ? "border-slate-200" : "border-purple-300";
   const ringFocus = isAdminView ? "focus:ring-slate-100" : "focus:ring-purple-100";
   const ringFocusBorder = isAdminView ? "focus:border-slate-500" : "focus:border-purple-500";
-  const badgeBg = isAdminView ? "bg-slate-200" : "bg-purple-100";
-  const badgeText = isAdminView ? "text-slate-800" : "text-purple-800";
 
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +62,6 @@ export default function SharedGallery({
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDate, setSortDate] = useState(null); // 'asc' | 'desc' | null
-  const [sortNote, setSortNote] = useState(null); // 'asc' | 'desc' | null
   const [selectedMatieres, setSelectedMatieres] = useState([]);
   const [selectedPromos, setSelectedPromos] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);

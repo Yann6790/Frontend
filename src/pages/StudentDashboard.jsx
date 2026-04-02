@@ -10,17 +10,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  AlertTriangle,
-  CalendarDays,
-  Clock3,
-  Settings2,
-} from "lucide-react";
+import { AlertTriangle, CalendarDays, Clock3, Settings2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import mmiLogo from "../Images/mmilogo.png";
-import { useAuth } from "../context/AuthContext";
 import { Spinner } from "../components/ui/spinner";
+import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { saeService } from "../services/sae.service";
 
 const TAB_CONFIG = [
@@ -69,6 +65,7 @@ function getSaeByTab(tab, list, thresholds) {
 }
 
 export default function StudentDashboard() {
+  usePageTitle("Tableau de bord");
   const { user } = useAuth();
 
   const [saes, setSaes] = useState([]);

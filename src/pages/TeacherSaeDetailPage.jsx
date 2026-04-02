@@ -21,12 +21,13 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Spinner } from "../components/ui/spinner";
 import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
-import { Spinner } from "../components/ui/spinner";
 
 // ─────────────────────────────────────────────────────────────────
 // Helpers
@@ -42,6 +43,7 @@ function toLocalDatetimeValue(isoStr) {
 // Composant Principal
 // ─────────────────────────────────────────────────────────────────
 export default function TeacherSaeDetailPage() {
+  usePageTitle("Détail SAE");
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -82,8 +84,7 @@ export default function TeacherSaeDetailPage() {
   const [allThematics, setAllThematics] = useState([]);
 
   // ── Bannières preset ──
-  const [allBanners, setAllBanners] = useState([]);
-  const [showBannerPicker, setShowBannerPicker] = useState(false);
+  // const [allBanners, setAllBanners] = useState([]); // Not currently used
 
   // ── Rendus & Notation ──
   const [submissionsList, setSubmissionsList] = useState([]);
@@ -103,9 +104,7 @@ export default function TeacherSaeDetailPage() {
 
   // ── Upload ──
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const bannerDropRef = useRef(null);
+  // const [isUploadingBanner, setIsUploadingBanner] = useState(false); // Not currently used
 
   // ─────────────────────────────────────────────────────────────────
   // Chargement initial
@@ -250,9 +249,9 @@ export default function TeacherSaeDetailPage() {
           setMilestoneStats(statsRes.value?.data || statsRes.value || null);
         }
       });
-    } catch (err) {
-      console.error("Erreur de chargement", err);
-      if (err.status === 403) {
+    } catch (_err) {
+      console.error("Erreur de chargement", _err);
+      if (_err.status === 403) {
         alert("Accès non autorisé.");
       } else {
         alert("Erreur lors du chargement de la SAE.");
@@ -311,7 +310,7 @@ export default function TeacherSaeDetailPage() {
       .getBanners()
       .then((data) => {
         const list = Array.isArray(data) ? data : data?.data || [];
-        setAllBanners(list);
+        // setAllBanners(list); // Not currently used
       })
       .catch(() => {});
   }, []);
@@ -410,9 +409,9 @@ export default function TeacherSaeDetailPage() {
         setSaveMsg("Aucune modification détectée.");
       }
       setIsEditing(false);
-    } catch (err) {
-      console.error("Erreur sauvegarde", err);
-      setSaveMsg(`Erreur : ${err.message || "Impossible de sauvegarder."}`);
+    } catch (_err) {
+      console.error("Erreur sauvegarde", _err);
+      setSaveMsg(`Erreur : ${_err.message || "Impossible de sauvegarder."}`);
     } finally {
       setIsSaving(false);
       setTimeout(() => setSaveMsg(""), 4000);
@@ -456,46 +455,48 @@ export default function TeacherSaeDetailPage() {
   // ─────────────────────────────────────────────────────────────────
   // Handlers : Banner Drag & Drop
   // ─────────────────────────────────────────────────────────────────
-  const handleBannerFile = async (file) => {
-    if (!file || !file.type.startsWith("image/")) {
-      alert("Fichier invalide. Sélectionnez une image.");
-      return;
-    }
-    setIsUploadingBanner(true);
-    try {
-      const result = await resourcesService.uploadImage(file);
-      const url = result?.url || result?.data?.url;
-      if (url) {
-        setFormData((prev) => ({ ...prev, banner: url }));
-        setSaveMsg("Image uploadée ! N'oubliez pas de sauvegarder.");
-        setTimeout(() => setSaveMsg(""), 4000);
-      }
-    } catch (err) {
-      console.error("Upload banner error", err);
-      alert("Erreur lors de l'upload de l'image.");
-    } finally {
-      setIsUploadingBanner(false);
-    }
-  };
+  // Note: handleBannerFile n'est pas actuellement utilisé
+  // const handleBannerFile = async (file) => {
+  //   if (!file || !file.type.startsWith("image/")) {
+  //     alert("Fichier invalide. Sélectionnez une image.");
+  //     return;
+  //   }
+  //   setIsUploadingBanner(true);
+  //   try {
+  //     const result = await resourcesService.uploadImage(file);
+  //     const url = result?.url || result?.data?.url;
+  //     if (url) {
+  //       setFormData((prev) => ({ ...prev, banner: url }));
+  //       setSaveMsg("Image uploadée ! N'oubliez pas de sauvegarder.");
+  //       setTimeout(() => setSaveMsg(""), 4000);
+  //     }
+  //   } catch (_err) {
+  //     console.error("Upload banner error", _err);
+  //     alert("Erreur lors de l'upload de l'image.");
+  //   } finally {
+  //     setIsUploadingBanner(false);
+  //   }
+  // };
 
-  const onDragOver = (e) => {
-    e.preventDefault();
-    setIsDraggingOver(true);
-  };
-  const onDragLeave = (e) => {
-    e.preventDefault();
-    setIsDraggingOver(false);
-  };
-  const onDrop = (e) => {
-    e.preventDefault();
-    setIsDraggingOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleBannerFile(file);
-  };
-  const onBannerInputChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) handleBannerFile(file);
-  };
+  // Note: Les fonctions de drag and drop suivantes ne sont pas actuellement utilisées dans le JSX
+  // const onDragOver = (e) => {
+  //   e.preventDefault();
+  //   setIsDraggingOver(true);
+  // };
+  // const onDragLeave = (e) => {
+  //   e.preventDefault();
+  //   setIsDraggingOver(false);
+  // };
+  // const onDrop = (e) => {
+  //   e.preventDefault();
+  //   setIsDraggingOver(false);
+  //   const file = e.dataTransfer.files?.[0];
+  //   if (file) handleBannerFile(file);
+  // };
+  // const onBannerInputChange = (e) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) handleBannerFile(file);
+  // };
 
   // ─────────────────────────────────────────────────────────────────
   // Handlers : Invitations
@@ -524,18 +525,7 @@ export default function TeacherSaeDetailPage() {
     }
   };
 
-  // Profs déjà invités (IDs)
-  const invitedTeacherIds = new Set(invitations.map((inv) => inv.userId));
-  const availableTeachers = allTeachers.filter((t) => {
-    if (invitedTeacherIds.has(t.id)) return false;
-    if (formData?.createdBy?.id === t.id) return false;
-    if (inviteSearch) {
-      const fullName =
-        `${t.name?.firstname || ""} ${t.name?.lastname || ""} ${t.email || ""}`.toLowerCase();
-      return fullName.includes(inviteSearch.toLowerCase());
-    }
-    return true;
-  });
+  // Profs déjà invités (IDs) - non utilisé actuellement mais peut servir pour filtrer les profs disponibles
 
   // ─────────────────────────────────────────────────────────────────
   // Handlers : Documents
@@ -576,7 +566,7 @@ export default function TeacherSaeDetailPage() {
       };
       await saeService.createMilestone(id, newPhase);
       await reloadMilestones();
-    } catch (err) {
+    } catch (_err) {
       alert("Erreur lors de l'ajout du palier");
     }
   };
@@ -631,7 +621,9 @@ export default function TeacherSaeDetailPage() {
     if (!trimmed) return;
     setIsAddingCategory(true);
     try {
-      const created = await saeService.createGradeCategory(id, { name: trimmed });
+      const created = await saeService.createGradeCategory(id, {
+        name: trimmed,
+      });
       const newCat = created?.data || created;
       setGradeCategories((prev) => [...prev, newCat]);
       setNewCategoryName("");
@@ -643,13 +635,20 @@ export default function TeacherSaeDetailPage() {
   };
 
   const handleDeleteGradeCategory = async (categoryId) => {
-    if (!window.confirm("Supprimer cette catégorie de note ? Les notes associées seront également supprimées.")) return;
+    if (
+      !window.confirm(
+        "Supprimer cette catégorie de note ? Les notes associées seront également supprimées.",
+      )
+    )
+      return;
     setIsDeletingCategoryId(categoryId);
     try {
       await saeService.deleteGradeCategory(id, categoryId);
       setGradeCategories((prev) => prev.filter((c) => c.id !== categoryId));
     } catch (err) {
-      alert(`Erreur : ${err.message || "Impossible de supprimer la catégorie."}`);
+      alert(
+        `Erreur : ${err.message || "Impossible de supprimer la catégorie."}`,
+      );
     } finally {
       setIsDeletingCategoryId(null);
     }
@@ -687,7 +686,7 @@ export default function TeacherSaeDetailPage() {
     setIsSavingGrades(true);
     try {
       const gradesArray = Object.entries(localGrades)
-        .filter(([_, value]) => value !== "")
+        .filter(([_key, value]) => value !== "")
         .map(([categoryId, value]) => ({ categoryId, value }));
 
       await saeService.setSubmissionGrades(selectedSubmission.id, {
@@ -716,7 +715,7 @@ export default function TeacherSaeDetailPage() {
         `${import.meta.env.VITE_API_URL || ""}/api/saes/${id}/grades/export`,
         "_blank",
       );
-    } catch (err) {
+    } catch (_err) {
       alert("Erreur lors de l'export.");
     } finally {
       setIsExporting(false);
@@ -742,18 +741,17 @@ export default function TeacherSaeDetailPage() {
     }
   };
 
-  const toggleSubmissionVisibility = async (submissionId, isPublic) => {
-    try {
-      await saeService.updateAllSubmissionsVisibility(id, isPublic); // Note: Should probably be individual toggle based on ID if available
-      // But the service has updateAllSubmissionsVisibility(saeId, isPublic).
-      // Documentation 33 says PATCH /api/saes/:saeId/submissions/:submissionId/visibility is possible.
-      // Let's add it to service if needed, but for now let's use what we have or reload.
-      const subsRes = await saeService.getSubmissions(id);
-      setSubmissionsList(subsRes.value?.data || subsRes.value || []);
-    } catch (err) {
-      alert("Erreur lors du changement de visibilité.");
-    }
-  };
+  // Note: toggleSubmissionVisibility n'est pas utilisé actuellement mais peut être nécessaire pour la visibilité des soumissions
+  // const toggleSubmissionVisibility = async (submissionId, isPublic) => {
+  //   try {
+  //     await saeService.updateAllSubmissionsVisibility(id, isPublic);
+  //     const subsRes = await saeService.getSubmissions(id);
+  //     setSubmissionsList(subsRes.value?.data || subsRes.value || []);
+  //   } catch (err) {
+  //     alert("Erreur lors du changement de visibilité.");
+  //   }
+  // };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
@@ -782,7 +780,6 @@ export default function TeacherSaeDetailPage() {
       cls: "bg-gray-100 text-gray-600 border-gray-200",
     },
   };
-  const badge = statusBadge[formData.status] || statusBadge.draft;
 
   const extractImage = (obj) =>
     obj?.imageUrl ||
@@ -1456,8 +1453,9 @@ export default function TeacherSaeDetailPage() {
 
               {/* ── Catégories de Notes ── */}
               {(() => {
-                const deadlineDate = formData?.dueDate ? new Date(formData.dueDate) : null;
-                const isAfterDeadline = deadlineDate ? new Date() >= deadlineDate : false;
+                const deadlineDate = formData?.dueDate
+                  ? new Date(formData.dueDate)
+                  : null;
                 return (
                   <div className="bg-white border border-slate-200 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-5">
@@ -1469,8 +1467,11 @@ export default function TeacherSaeDetailPage() {
                           Définissez les axes d'évaluation des rendus étudiants.
                         </p>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${gradeCategories.length > 0 ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
-                        {gradeCategories.length} critère{gradeCategories.length !== 1 ? "s" : ""}
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-bold border ${gradeCategories.length > 0 ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}
+                      >
+                        {gradeCategories.length} critère
+                        {gradeCategories.length !== 1 ? "s" : ""}
                       </span>
                     </div>
 
@@ -1479,8 +1480,13 @@ export default function TeacherSaeDetailPage() {
                       <div className="mb-4 flex items-start gap-2.5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
                         <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                         <p className="text-xs text-blue-700 leading-relaxed">
-                          <strong>La saisie des notes</strong> sera disponible après le{" "}
-                          {deadlineDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                          <strong>La saisie des notes</strong> sera disponible
+                          après le{" "}
+                          {deadlineDate.toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}
                           . Vous pouvez créer les catégories dès maintenant.
                         </p>
                       </div>
@@ -1550,7 +1556,8 @@ export default function TeacherSaeDetailPage() {
                     </div>
                     {!deadlineDate && (
                       <p className="text-xs text-slate-400 italic mt-2">
-                        Définissez une date de rendu pour indiquer quand la notation sera ouverte.
+                        Définissez une date de rendu pour indiquer quand la
+                        notation sera ouverte.
                       </p>
                     )}
                   </div>
@@ -2140,12 +2147,20 @@ export default function TeacherSaeDetailPage() {
                         }
                         className="flex items-center gap-2 py-2 px-4 bg-white border border-slate-200 text-slate-700 font-medium text-sm rounded-lg transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isExporting ? <Spinner size="sm" /> : <Download className="w-4 h-4" />}
+                        {isExporting ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
                         {isExporting ? "Chargement..." : "Exporter Notes"}
                       </button>
 
                       <label className="flex items-center gap-2 py-2.5 px-5 bg-white text-indigo-900 hover:bg-purple-50 font-bold text-sm rounded-xl border border-purple-100 shadow-sm cursor-pointer transition-all">
-                        {isImporting ? <Spinner size="sm" /> : <UploadCloud className="w-4 h-4" />}
+                        {isImporting ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          <UploadCloud className="w-4 h-4" />
+                        )}
                         {isImporting ? "Importation..." : "Importer Notes"}
                         <input
                           type="file"
@@ -2332,7 +2347,8 @@ export default function TeacherSaeDetailPage() {
                   </h3>
                   <p className="text-indigo-200 text-sm font-medium">
                     {selectedSubmission.description
-                      ? selectedSubmission.description.slice(0, 60) + (selectedSubmission.description.length > 60 ? "…" : "")
+                      ? selectedSubmission.description.slice(0, 60) +
+                        (selectedSubmission.description.length > 60 ? "…" : "")
                       : "Rendu de projet"}
                   </p>
                 </div>

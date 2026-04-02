@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Clock3, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export default function PendingValidation() {
+  usePageTitle("Validation en attente");
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
