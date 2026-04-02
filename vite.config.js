@@ -17,13 +17,29 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://ecampus-mmi.onrender.com",
+        // Backend distant (onrender) en dev.
+        // Surchargable via VITE_PROXY_TARGET si besoin.
+        target:
+          process.env.VITE_PROXY_TARGET || "https://ecampus-mmi.onrender.com",
         changeOrigin: true,
         secure: true,
         headers: {
-          // Forcer l'Origin et le Referer pour que Better Auth accepte la requête
           Origin: "https://ecampus-mmi.onrender.com",
           Referer: "https://ecampus-mmi.onrender.com/",
+        },
+        configure: (proxy) => {
+          proxy.on("proxyRes", (proxyRes) => {
+            const setCookie = proxyRes.headers["set-cookie"];
+            if (!Array.isArray(setCookie)) return;
+
+            // Dev localhost over HTTP cannot store Secure cookies.
+            // Also drop Domain so browser stores cookie for localhost.
+            proxyRes.headers["set-cookie"] = setCookie.map((cookie) =>
+              cookie
+                .replace(/;\s*Secure/gi, "")
+                .replace(/;\s*Domain=[^;]+/gi, ""),
+            );
+          });
         },
       },
     },
