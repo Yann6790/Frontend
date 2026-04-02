@@ -5,6 +5,7 @@ import IllustratedState from "../components/IllustratedState";
 import { useAuth } from "../context/AuthContext";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
+import { Spinner } from "../components/ui/spinner";
 
 export default function StudentRendusPage() {
   const { user } = useAuth();
@@ -34,13 +35,15 @@ export default function StudentRendusPage() {
       // 2. Fetch all necessary data concurrently
       const [saeData, gradesDataRes, semestersRes] = await Promise.all([
         saeService.getSaeList(apiParams),
-        saeService.getMyGrades().catch(() => ({ data: { data: [] } })),
+        saeService.getMyGrades().catch(() => ({ data: [] })),
         resourcesService.getSemesters().catch(() => ({ data: [] })),
       ]);
 
       const allSaes = Array.isArray(saeData) ? saeData : saeData?.data || [];
-      const myGradesArray = Array.isArray(gradesDataRes?.data?.data)
-        ? gradesDataRes.data.data
+      const myGradesArray = Array.isArray(gradesDataRes?.data)
+        ? gradesDataRes.data
+        : Array.isArray(gradesDataRes)
+        ? gradesDataRes
         : [];
       const sems = Array.isArray(semestersRes)
         ? semestersRes
@@ -52,9 +55,7 @@ export default function StudentRendusPage() {
       // 4. Map the graded items so we can lookup average easily by saeTitle or via some linkage.
       const gradesMap = {};
       myGradesArray.forEach((gradeObj) => {
-        if (gradeObj.saeId) {
-          gradesMap[gradeObj.saeId] = gradeObj.average;
-        } else if (gradeObj.saeTitle) {
+        if (gradeObj.saeTitle) {
           gradesMap[gradeObj.saeTitle] = gradeObj.average;
         }
       });
@@ -73,7 +74,7 @@ export default function StudentRendusPage() {
           semLabel = num ? `S${num}` : semObj.name || semObj.label || "S?";
         }
 
-        const gradeVal = gradesMap[sae.id] ?? gradesMap[sae.title];
+        const gradeVal = gradesMap[sae.title] ?? gradesMap[sae.id];
 
         return {
           id: sae.id,
@@ -198,7 +199,7 @@ export default function StudentRendusPage() {
 
         {isLoading ? (
           <div className="flex min-h-72 items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
+            <Spinner size="lg" />
           </div>
         ) : fetchError ? (
           <IllustratedState
@@ -218,7 +219,7 @@ export default function StudentRendusPage() {
               <button
                 type="button"
                 onClick={loadRendus}
-                className="inline-flex h-9 items-center rounded-lg bg-purple-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-purple-700"
+                className="inline-flex h-9 items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white whitespace-nowrap w-fit gap-2 transition-all duration-200 active:scale-95"
               >
                 Reessayer
               </button>

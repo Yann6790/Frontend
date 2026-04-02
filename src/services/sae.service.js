@@ -244,6 +244,15 @@ export const saeService = {
     return res.data || res;
   },
 
+  /** DELETE /api/saes/:saeId/grade-categories/:categoryId */
+  async deleteGradeCategory(saeId, categoryId) {
+    const res = await apiClient(
+      `/api/saes/${saeId}/grade-categories/${categoryId}`,
+      { method: "DELETE" },
+    );
+    return res.data || res;
+  },
+
   /** GET /api/saes/:saeId/grades */
   async getGrades(saeId) {
     const res = await apiClient(`/api/saes/${saeId}/grades`, { method: "GET" });

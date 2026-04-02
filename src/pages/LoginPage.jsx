@@ -117,7 +117,7 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 flex flex-row items-center justify-center whitespace-nowrap w-fit gap-2 transition-all duration-200 active:scale-95"
                       aria-label={
                         showPassword
                           ? "Masquer le mot de passe"
@@ -138,7 +138,7 @@ const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={isLoading || !email || !password}
-                  className="h-11 rounded-xl font-bold text-sm shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-11 rounded-xl font-bold text-sm shadow-sm disabled:cursor-not-allowed disabled:opacity-50 px-4 py-2 gap-2 flex items-center justify-center"
                 >
                   {isLoading
                     ? "Connexion en cours..."

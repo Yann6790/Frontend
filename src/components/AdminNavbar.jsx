@@ -2,9 +2,10 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import mmiLogo from "../Images/mmilogo.png";
 import { Button } from "./ui/button";
+import { LogOut } from "lucide-react";
 
 export default function AdminNavbar() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -19,7 +20,7 @@ export default function AdminNavbar() {
   ];
 
   return (
-    <nav className="fixed top-4 left-4 right-4 mx-auto max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200 px-6 h-16 grid grid-cols-[1fr_auto_1fr] items-center rounded-full z-50 font-montserrat">
+    <nav className="fixed top-4 left-4 right-4 mx-auto max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200 px-6 h-16 grid grid-cols-[1fr_auto_1fr] items-center rounded-lg z-50 font-montserrat">
       {/* Left: Logo */}
       <div className="flex items-center min-w-0">
         <img src={mmiLogo} alt="Logo MMI" className="h-14 w-auto" />
@@ -47,7 +48,9 @@ export default function AdminNavbar() {
       {/* Right: Admin Profile & Sign Out */}
       <div className="flex justify-end items-center gap-4 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-slate-700">Admin</span>
+          <span className="text-sm font-semibold text-slate-700">
+            Hello {user?.firstname || user?.name?.firstname || "Admin"}
+          </span>
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-100 flex items-center justify-center">
             <img
               src="/Images/adminlogo.png"
@@ -68,21 +71,9 @@ export default function AdminNavbar() {
           size="icon"
           aria-label="Se deconnecter"
           title="Se deconnecter"
-          className="w-10 h-10 rounded-full transition-colors shadow-sm flex items-center justify-center p-0"
+          className="w-10 h-10 p-0 gap-0 flex items-center justify-center"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            ></path>
-          </svg>
+          <LogOut className="w-5 h-5" />
         </Button>
       </div>
     </nav>

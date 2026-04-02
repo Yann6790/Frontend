@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   CheckCircle2,
+  Clock,
   FileText,
   Image as ImageIcon,
   UploadCloud,
@@ -20,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { Spinner } from "../components/ui/spinner";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
 
@@ -31,12 +33,12 @@ export default function StudentSaeSubmissionPage() {
 
   // ── États page ──
   const [isLoading, setIsLoading] = useState(true);
+  const [existingSubmission, setExistingSubmission] = useState(null);
   const isReadOnly = searchParams.get("mode") !== "edit" && (forcedReadOnly || !!existingSubmission);
   
   const setIsReadOnly = (val) => {
     setSearchParams({ mode: val ? "view" : "edit" }, { replace: true });
   };
-  const [existingSubmission, setExistingSubmission] = useState(null);
   const [saeTitle, setSaeTitle] = useState("");
   const [saeBanner, setSaeBanner] = useState("");
   const [dueDate, setDueDate] = useState(null);
@@ -59,6 +61,10 @@ export default function StudentSaeSubmissionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   const [error, setError] = useState("");
+
+  // ── Grades ──
+  const [myGrades, setMyGrades] = useState(null);
+  const [isLoadingGrades, setIsLoadingGrades] = useState(true);
 
   // ────────────────────────────────────────────────────────────
   // Chargement initial
@@ -95,6 +101,27 @@ export default function StudentSaeSubmissionPage() {
         } catch {
           // 404 = pas encore de rendu, c'est normal
           setExistingSubmission(null);
+        }
+
+        // Charger les grades détaillés si soumis
+        try {
+          setIsLoadingGrades(true);
+          const gradesRes = await saeService.getMyGrades().catch(() => ({ data: [] }));
+          // Le service retourne: { data: {..., data: [...] } } donc on accède à gradesRes.data.data
+          let gradesArray = [];
+          if (Array.isArray(gradesRes?.data?.data)) {
+            gradesArray = gradesRes.data.data;
+          } else if (Array.isArray(gradesRes?.data)) {
+            gradesArray = gradesRes.data;
+          } else if (Array.isArray(gradesRes)) {
+            gradesArray = gradesRes;
+          }
+          setMyGrades(gradesArray);
+        } catch (err) {
+          console.error("Erreur chargement grades:", err);
+          setMyGrades([]);
+        } finally {
+          setIsLoadingGrades(false);
         }
       } finally {
         setIsLoading(false);
@@ -217,7 +244,7 @@ export default function StudentSaeSubmissionPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -294,6 +321,95 @@ export default function StudentSaeSubmissionPage() {
           </div>
         )}
 
+        {/* Section des notes détaillées */}
+        {existingSubmission && !isLoadingGrades && (
+          (() => {
+            // Chercher les grades pour cette SAE par titre ou par ID
+            if (!Array.isArray(myGrades) || myGrades.length === 0) {
+              // Pas de grades du tout
+              return (
+                <Card className="ring-0 shadow-none border-2 border-slate-200 bg-slate-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-3">
+                      <Clock className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-slate-900 text-sm">
+                          Notes en attente
+                        </p>
+                        <p className="text-slate-600 text-xs mt-1">
+                          Vos notes n'ont pas encore été attribuées par le professeur.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            }
+            
+            const currentGrade = myGrades.find(
+              g => (g.saeTitle && saeTitle && g.saeTitle.toLowerCase().trim() === saeTitle.toLowerCase().trim())
+            );
+            
+            if (currentGrade && currentGrade.grades && Array.isArray(currentGrade.grades) && currentGrade.grades.length > 0) {
+              return (
+                <Card className="ring-0 shadow-none border-2 border-purple-100 bg-purple-50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-purple-900">
+                      Détail de tes notes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 gap-3">
+                      {currentGrade.grades.map((grade, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-200"
+                        >
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-slate-900">
+                              {grade.categoryName || "Catégorie"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-bold text-purple-600">
+                              {grade.value}/20
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-purple-100 rounded-lg border border-purple-300">
+                      <p className="text-sm font-bold text-purple-900">Moyenne</p>
+                      <p className="text-xl font-bold text-purple-600">
+                        {currentGrade.average}/20
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            }
+            
+            // Grades existent mais ne correspondent pas à cette SAE
+            return (
+              <Card className="ring-0 shadow-none border-2 border-slate-200 bg-slate-50">
+                <CardContent className="pt-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-slate-900 text-sm">
+                        Notes en attente
+                      </p>
+                      <p className="text-slate-600 text-xs mt-1">
+                        Vos notes n'ont pas encore été attribuées par le professeur.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()
+        )}
+
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 w-full max-w-6xl"
@@ -345,7 +461,7 @@ export default function StudentSaeSubmissionPage() {
                           setImagePreview(null);
                           setImageFile(null);
                         }}
-                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+                        className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full transition-all duration-200 active:scale-95 flex flex-row items-center justify-center whitespace-nowrap w-fit gap-2"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -504,20 +620,12 @@ export default function StudentSaeSubmissionPage() {
               <>
                 <Button
                   type="submit"
-                  disabled={isSubmitting || (!selectedFile && !existingSubmission)}
+                  loading={isSubmitting}
+                  disabled={!selectedFile && !existingSubmission}
                   className="flex-1 h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transition-all"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                      <span>Enregistrement...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{existingSubmission ? "Sauvegarder les modifications" : "Confirmer le rendu"}</span>
-                      <CheckCircle2 className="w-5 h-5 ml-2" />
-                    </>
-                  )}
+                  <span>{existingSubmission ? "Sauvegarder les modifications" : "Confirmer le rendu"}</span>
+                  <CheckCircle2 className="w-5 h-5 ml-2" />
                 </Button>
                 
                 {existingSubmission && (

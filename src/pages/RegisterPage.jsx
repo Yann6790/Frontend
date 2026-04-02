@@ -257,7 +257,7 @@ const RegisterPage = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-11 rounded-xl text-sm font-bold"
+                  className="h-11 rounded-xl text-sm font-bold px-4 py-2 gap-2 flex items-center justify-center"
                 >
                   {isLoading ? "Inscription en cours..." : "Creer mon compte"}
                 </Button>

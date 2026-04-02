@@ -10,7 +10,7 @@ export default function TeacherGalleryPage() {
   const handleDelete = async (saeId, id) => {
     if (
       window.confirm(
-        "Voulez-vous vraiment cacher/supprimer cette réalisation de la galerie publique ?",
+        "Voulez-vous vraiment supprimer définitivement cette réalisation de la galerie ?",
       )
     ) {
       try {
@@ -21,6 +21,10 @@ export default function TeacherGalleryPage() {
         alert(err.message || "Erreur lors de la suppression.");
       }
     }
+  };
+
+  const handleHide = async (saeId, submissionId) => {
+    await saeService.updateSubmissionVisibility(saeId, submissionId, false);
   };
 
   return (
@@ -55,6 +59,7 @@ export default function TeacherGalleryPage() {
           isAdminView={true}
           refreshTrigger={refreshTrigger}
           onDelete={handleDelete}
+          onHide={handleHide}
         />
       </main>
     </div>

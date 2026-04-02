@@ -12,6 +12,7 @@ import {
   Download,
   Edit3,
   FileText,
+  Plus,
   Save,
   Search,
   Trash2,
@@ -25,6 +26,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
+import { Spinner } from "../components/ui/spinner";
 
 // ─────────────────────────────────────────────────────────────────
 // Helpers
@@ -93,6 +95,11 @@ export default function TeacherSaeDetailPage() {
   const [isSavingGrades, setIsSavingGrades] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+
+  // ── Catégories de notes ──
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [isDeletingCategoryId, setIsDeletingCategoryId] = useState(null);
 
   // ── Upload ──
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
@@ -617,6 +624,38 @@ export default function TeacherSaeDetailPage() {
   };
 
   // ─────────────────────────────────────────────────────────────────
+  // Handlers : Catégories de Notes
+  // ─────────────────────────────────────────────────────────────────
+  const handleAddGradeCategory = async () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    setIsAddingCategory(true);
+    try {
+      const created = await saeService.createGradeCategory(id, { name: trimmed });
+      const newCat = created?.data || created;
+      setGradeCategories((prev) => [...prev, newCat]);
+      setNewCategoryName("");
+    } catch (err) {
+      alert(`Erreur : ${err.message || "Impossible de créer la catégorie."}`);
+    } finally {
+      setIsAddingCategory(false);
+    }
+  };
+
+  const handleDeleteGradeCategory = async (categoryId) => {
+    if (!window.confirm("Supprimer cette catégorie de note ? Les notes associées seront également supprimées.")) return;
+    setIsDeletingCategoryId(categoryId);
+    try {
+      await saeService.deleteGradeCategory(id, categoryId);
+      setGradeCategories((prev) => prev.filter((c) => c.id !== categoryId));
+    } catch (err) {
+      alert(`Erreur : ${err.message || "Impossible de supprimer la catégorie."}`);
+    } finally {
+      setIsDeletingCategoryId(null);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────
   // Handlers : Notation & Rendus
   // ─────────────────────────────────────────────────────────────────
   const openGradingModal = (submission) => {
@@ -718,7 +757,7 @@ export default function TeacherSaeDetailPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -895,11 +934,9 @@ export default function TeacherSaeDetailPage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50"
+                  className="py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
                 >
-                  {isSaving ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : null}
+                  {isSaving && <Spinner size="sm" variant="white" />}
                   {isSaving ? "Sauvegarde..." : "Sauvegarder"}
                 </button>
               </>
@@ -1345,11 +1382,9 @@ export default function TeacherSaeDetailPage() {
                             <Button
                               size="sm"
                               onClick={() => handleSavePhase(phase.id)}
-                              disabled={isSavingPhase || !editPhaseData.title}
+                              loading={isSavingPhase}
+                              disabled={!editPhaseData.title}
                             >
-                              {isSavingPhase ? (
-                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : null}
                               Sauvegarder
                             </Button>
                             <Button
@@ -1419,6 +1454,109 @@ export default function TeacherSaeDetailPage() {
                 </div>
               </div>
 
+              {/* ── Catégories de Notes ── */}
+              {(() => {
+                const deadlineDate = formData?.dueDate ? new Date(formData.dueDate) : null;
+                const isAfterDeadline = deadlineDate ? new Date() >= deadlineDate : false;
+                return (
+                  <div className="bg-white border border-slate-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-5">
+                      <div>
+                        <h3 className="text-xl font-semibold text-slate-950">
+                          Critères de notation
+                        </h3>
+                        <p className="text-sm text-slate-500 mt-0.5">
+                          Définissez les axes d'évaluation des rendus étudiants.
+                        </p>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${gradeCategories.length > 0 ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                        {gradeCategories.length} critère{gradeCategories.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+
+                    {/* Info sur la notation (disponible après deadline) */}
+                    {deadlineDate && (
+                      <div className="mb-4 flex items-start gap-2.5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                        <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-blue-700 leading-relaxed">
+                          <strong>La saisie des notes</strong> sera disponible après le{" "}
+                          {deadlineDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                          . Vous pouvez créer les catégories dès maintenant.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Liste des critères existants */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {gradeCategories.length === 0 ? (
+                        <p className="text-sm text-slate-400 italic py-2">
+                          Aucun critère défini pour l'instant.
+                        </p>
+                      ) : (
+                        gradeCategories.map((cat) => (
+                          <div
+                            key={cat.id}
+                            className="group flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2"
+                          >
+                            <ClipboardList className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                            <span className="text-sm font-semibold text-purple-800">
+                              {cat.name}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteGradeCategory(cat.id)}
+                              disabled={isDeletingCategoryId === cat.id}
+                              className="ml-1 p-0.5 rounded text-purple-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                              title="Supprimer ce critère"
+                            >
+                              {isDeletingCategoryId === cat.id ? (
+                                <Spinner size="sm" />
+                              ) : (
+                                <X className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Formulaire d'ajout — toujours accessible */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && newCategoryName.trim()) {
+                            e.preventDefault();
+                            handleAddGradeCategory();
+                          }
+                        }}
+                        placeholder="Nom du critère (ex : Qualité du code, Design...)"
+                        className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
+                        disabled={isAddingCategory}
+                      />
+                      <button
+                        onClick={handleAddGradeCategory}
+                        disabled={isAddingCategory || !newCategoryName.trim()}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                      >
+                        {isAddingCategory ? (
+                          <Spinner size="sm" variant="white" />
+                        ) : (
+                          <Plus className="w-4 h-4" />
+                        )}
+                        Ajouter
+                      </button>
+                    </div>
+                    {!deadlineDate && (
+                      <p className="text-xs text-slate-400 italic mt-2">
+                        Définissez une date de rendu pour indiquer quand la notation sera ouverte.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+
               {/* Ressources */}
               <div className="bg-white rounded-xl p-6 border border-slate-200 mb-2">
                 <div className="flex items-center justify-between mb-6">
@@ -1461,11 +1599,9 @@ export default function TeacherSaeDetailPage() {
                               document.getElementById("upload-doc").click()
                             }
                             disabled={isUploadingDoc}
-                            className="flex items-center justify-center p-2.5 mt-1 border border-dashed border-slate-300 rounded-lg text-slate-500 hover:text-purple-600 hover:border-purple-300 hover:bg-purple-50 transition-colors text-sm font-bold w-full uppercase"
+                            className="flex items-center justify-center p-2.5 mt-1 border border-dashed border-slate-300 rounded-lg text-slate-500 hover:text-purple-600 hover:border-purple-300 hover:bg-purple-50 transition-colors text-sm font-bold w-full uppercase gap-2"
                           >
-                            {isUploadingDoc ? (
-                              <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
-                            ) : null}
+                            {isUploadingDoc && <Spinner size="sm" />}
                             {isUploadingDoc
                               ? "Upload en cours..."
                               : "Ajouter un fichier"}
@@ -1996,7 +2132,7 @@ export default function TeacherSaeDetailPage() {
                     <div className="relative z-10 flex flex-wrap justify-center gap-3">
                       <button
                         onClick={handleExportGrades}
-                        disabled={isExporting || !canExportGrades}
+                        disabled={!canExportGrades || isExporting}
                         title={
                           !canExportGrades
                             ? "L'export des notes sera disponible une fois la SAE terminée"
@@ -2004,13 +2140,13 @@ export default function TeacherSaeDetailPage() {
                         }
                         className="flex items-center gap-2 py-2 px-4 bg-white border border-slate-200 text-slate-700 font-medium text-sm rounded-lg transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Download className="w-4 h-4" />
-                        Exporter Notes
+                        {isExporting ? <Spinner size="sm" /> : <Download className="w-4 h-4" />}
+                        {isExporting ? "Chargement..." : "Exporter Notes"}
                       </button>
 
                       <label className="flex items-center gap-2 py-2.5 px-5 bg-white text-indigo-900 hover:bg-purple-50 font-bold text-sm rounded-xl border border-purple-100 shadow-sm cursor-pointer transition-all">
-                        <UploadCloud className="w-4 h-4" />
-                        Importer Notes
+                        {isImporting ? <Spinner size="sm" /> : <UploadCloud className="w-4 h-4" />}
+                        {isImporting ? "Importation..." : "Importer Notes"}
                         <input
                           type="file"
                           className="hidden"
@@ -2195,7 +2331,9 @@ export default function TeacherSaeDetailPage() {
                     {selectedSubmission.name?.lastname}
                   </h3>
                   <p className="text-indigo-200 text-sm font-medium">
-                    {selectedSubmission.fileName}
+                    {selectedSubmission.description
+                      ? selectedSubmission.description.slice(0, 60) + (selectedSubmission.description.length > 60 ? "…" : "")
+                      : "Rendu de projet"}
                   </p>
                 </div>
               </div>
@@ -2261,11 +2399,11 @@ export default function TeacherSaeDetailPage() {
                 className="flex-1 flex items-center justify-center gap-2 py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-black rounded-2xl shadow-lg shadow-purple-600/20 transition-all disabled:opacity-50"
               >
                 {isSavingGrades ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Spinner size="sm" variant="white" />
                 ) : (
                   <Save className="w-5 h-5" />
                 )}
-                Enregistrer la note
+                {isSavingGrades ? "Enregistrement..." : "Enregistrer la note"}
               </button>
               <button
                 onClick={() => setIsGradingModalOpen(false)}

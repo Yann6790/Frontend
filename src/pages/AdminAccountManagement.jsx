@@ -147,16 +147,16 @@ export default function AdminAccountManagement() {
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-10 mt-16 flex flex-col gap-6">
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-slate-200">
-          <h1 className="text-3xl font-black text-slate-950 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-950 tracking-tight">
             Gestion des comptes du site
           </h1>
           <Button 
             onClick={handleCreateTeacherClick}
             variant="admin"
-            className="text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
+            className="px-4 py-2 h-10 gap-2 flex items-center justify-center"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
-            Créer un compte Enseignant
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{lineHeight: '1'}}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path></svg>
+            <span className="text-xs font-bold uppercase tracking-wider">Créer un compte Enseignant</span>
           </Button>
         </div>
 
@@ -248,10 +248,11 @@ export default function AdminAccountManagement() {
                     <td className="py-4 px-6 text-center">
                       <Button 
                         onClick={() => handleDelete(user.id)}
-                        disabled={user.role === 'ADMIN'} // Empêcher la suppression des admins ou de soi-même idéalement
-                        className="bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-300 hover:border-red-300 text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                        disabled={user.role === 'ADMIN'}
+                        variant="adminOutline"
+                        className="px-3 py-2 h-9 gap-2 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        Supprimer
+                        <span className="text-[11px] uppercase tracking-wider font-black">Supprimer</span>
                       </Button>
                     </td>
                   </tr>

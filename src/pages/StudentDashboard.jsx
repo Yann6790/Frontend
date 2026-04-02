@@ -14,13 +14,13 @@ import {
   AlertTriangle,
   CalendarDays,
   Clock3,
-  Loader2,
   Settings2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import mmiLogo from "../Images/mmilogo.png";
 import { useAuth } from "../context/AuthContext";
+import { Spinner } from "../components/ui/spinner";
 import { saeService } from "../services/sae.service";
 
 const TAB_CONFIG = [
@@ -185,7 +185,7 @@ export default function StudentDashboard() {
           </p>
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1 space-y-3">
-              <h1 className="text-4xl font-black tracking-tight text-slate-950">
+              <h1 className="text-2xl font-black tracking-tight text-slate-950">
                 Bonjour {user?.firstname || user?.name?.firstname || "etudiant"}
               </h1>
               <p className="text-base text-slate-600">
@@ -205,10 +205,10 @@ export default function StudentDashboard() {
           <Button
             onClick={openThresholdModal}
             variant="outline"
-            className="h-11 rounded-lg px-4"
+            className="h-10 px-4 py-2 gap-2 flex items-center justify-center"
           >
-            <Settings2 className="mr-2 h-5 w-5" />
-            Modifier les seuils
+            <Settings2 className="h-5 w-5 flex-shrink-0" />
+            <span>Modifier les seuils</span>
           </Button>
         </div>
 
@@ -244,7 +244,7 @@ export default function StudentDashboard() {
               <button
                 type="button"
                 onClick={() => setSelectedMatieres([])}
-                className={`px-3 py-1.5 rounded-full font-semibold text-xs whitespace-nowrap transition ${
+                className={`px-3 py-1.5 rounded-full font-semibold text-xs whitespace-nowrap flex items-center justify-center gap-1 transition-all duration-200 active:scale-95 ${
                   selectedMatieres.length === 0
                     ? "bg-purple-600 text-white"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -259,7 +259,7 @@ export default function StudentDashboard() {
                     key={matiere}
                     type="button"
                     onClick={() => toggleMatiere(matiere)}
-                    className={`px-3 py-1.5 rounded-full font-semibold text-xs whitespace-nowrap transition ${
+                    className={`px-3 py-1.5 rounded-full font-semibold text-xs whitespace-nowrap flex items-center justify-center gap-1 transition-all duration-200 active:scale-95 ${
                       isActive
                         ? "bg-purple-600 text-white"
                         : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -277,7 +277,7 @@ export default function StudentDashboard() {
         <div className="mt-8">
           {isLoading && (
             <div className="flex h-96 flex-col items-center justify-center gap-4 text-center">
-              <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
+              <Spinner size="lg" />
               <p className="text-base font-medium text-slate-600">
                 Chargement de vos SAE...
               </p>
@@ -328,7 +328,7 @@ export default function StudentDashboard() {
                     to={`/sae/${sae.id}`}
                     className="block group"
                   >
-                    <div className="h-full rounded-2xl overflow-hidden bg-white border border-slate-200 hover:border-slate-300 transition hover:shadow-lg">
+                    <div className="h-full rounded-xl overflow-hidden bg-white border border-slate-200 hover:border-slate-300 transition hover:shadow-lg">
                       {/* Banner */}
                       {sae.banner && (
                         <div className="h-40 overflow-hidden bg-slate-100">
@@ -341,7 +341,7 @@ export default function StudentDashboard() {
                       )}
 
                       {/* Content */}
-                      <div className="p-5 space-y-4">
+                      <div className="p-6 space-y-4">
                         {/* Tags */}
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 text-xs font-semibold">

@@ -1,8 +1,10 @@
-import { ChevronDown, ExternalLink, FileText, Trash2, X } from "lucide-react";
+import { ChevronDown, ExternalLink, EyeOff, FileText, Trash2, X } from "lucide-react";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { saeService } from "../services/sae.service";
 import IllustratedState from "./IllustratedState";
+import { Spinner } from "./ui/spinner";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
@@ -43,6 +45,7 @@ export default function SharedGallery({
   isAdminView = false,
   refreshTrigger = 0,
   onDelete = () => {},
+  onHide = () => {},
 }) {
   // Styles conditionnels (Ardoise pour Admin, Violet pour le reste)
   const primaryBg = isAdminView ? "bg-slate-800" : "bg-purple-600";
@@ -59,6 +62,7 @@ export default function SharedGallery({
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
+  const [hidingId, setHidingId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDate, setSortDate] = useState(null); // 'asc' | 'desc' | null
@@ -229,7 +233,7 @@ export default function SharedGallery({
                       setSortNote(null);
                       setIsDateMenuOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 hover:${accentBg} text-sm ${sortDate === "asc" ? `${accentBg} ${accentText} font-bold` : "text-gray-700"}`}
+                    className={`w-full text-left px-4 py-2 hover:${accentBg} text-sm flex flex-row items-center justify-center whitespace-nowrap w-fit gap-2 transition-all duration-200 active:scale-95 ${sortDate === "asc" ? `${accentBg} ${accentText} font-bold` : "text-gray-700"}`}
                   >
                     Croissante
                   </button>
@@ -239,14 +243,14 @@ export default function SharedGallery({
                       setSortNote(null);
                       setIsDateMenuOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 hover:${accentBg} text-sm ${sortDate === "desc" ? `${accentBg} ${accentText} font-bold` : "text-gray-700"}`}
+                    className={`w-full text-left px-4 py-2 hover:${accentBg} text-sm flex flex-row items-center justify-center whitespace-nowrap w-fit gap-2 transition-all duration-200 active:scale-95 ${sortDate === "desc" ? `${accentBg} ${accentText} font-bold` : "text-gray-700"}`}
                   >
                     Décroissante
                   </button>
                   {sortDate && (
                     <button
                       onClick={() => setSortDate(null)}
-                      className="w-full text-left px-4 py-2 mt-1 border-t border-gray-100 hover:bg-gray-50 text-sm text-red-500 font-medium"
+                      className="w-full text-left px-4 py-2 mt-1 border-t border-gray-100 hover:bg-gray-50 text-sm text-red-500 font-medium flex flex-row items-center justify-center whitespace-nowrap w-fit gap-2 transition-all duration-200 active:scale-95"
                     >
                       Effacer
                     </button>
@@ -358,13 +362,9 @@ export default function SharedGallery({
 
       <div className="bg-white flex-1 w-full min-h-screen px-6 py-12 md:px-12">
         {isLoading ? (
-          <IllustratedState
-            imageSrc="/images/undraw_portfolio_btd8.svg"
-            imageAlt="Chargement de la galerie"
-            title="Chargement de la galerie"
-            description="Nous recuperons les projets publies."
-            className="min-h-72"
-          />
+          <div className="flex min-h-[400px] items-center justify-center">
+            <Spinner size="xl" />
+          </div>
         ) : fetchError ? (
           <IllustratedState
             imageSrc="/images/undraw_portfolio_btd8.svg"
@@ -388,18 +388,46 @@ export default function SharedGallery({
                 onClick={() => setSelectedProject(project)}
                 className="bg-white relative rounded-xl overflow-hidden transition-all duration-300 flex flex-col group border border-slate-200 hover:border-slate-300 cursor-pointer"
               >
-                {/* Modération (Croix de suppression) */}
+                {/* Modération (Masquer + Supprimer) */}
                 {canModerate && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(project.saeId, project.id);
-                    }}
-                    className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-red-500 hover:text-white backdrop-blur-md rounded-full text-red-500 shadow-sm border border-red-100 transition-all scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
-                    title="Supprimer la réalisation"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+                    {/* Bouton Masquer */}
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (hidingId === project.id) return;
+                        setHidingId(project.id);
+                        try {
+                          await onHide(project.saeId, project.id);
+                          // Retrait optimiste de la galerie locale
+                          setProjects((prev) => prev.filter((p) => p.id !== project.id));
+                        } finally {
+                          setHidingId(null);
+                        }
+                      }}
+                      disabled={hidingId === project.id}
+                      className="p-2 bg-white/90 hover:bg-amber-500 hover:text-white backdrop-blur-md rounded-full text-amber-500 shadow-sm border border-amber-100 transition-all duration-200 active:scale-95 disabled:opacity-50"
+                      title="Masquer ce projet (le retirer de la galerie publique)"
+                    >
+                      {hidingId === project.id ? (
+                        <Spinner size="sm" />
+                      ) : (
+                        <EyeOff className="w-4 h-4" />
+                      )}
+                    </button>
+
+                    {/* Bouton Supprimer */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(project.saeId, project.id);
+                      }}
+                      className="p-2 bg-white/90 hover:bg-red-500 hover:text-white backdrop-blur-md rounded-full text-red-500 shadow-sm border border-red-100 transition-all duration-200 active:scale-95"
+                      title="Supprimer la réalisation"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 )}
 
                 <div className="h-48 bg-gray-200 relative overflow-hidden group">
@@ -578,9 +606,10 @@ export default function SharedGallery({
                         );
                       }
                     }}
-                    className={`w-full ${isAdminView ? 'bg-slate-800 hover:bg-slate-900 text-white' : ''}`}
+                    className={`w-full px-4 py-2 h-10 gap-2 flex items-center justify-center ${isAdminView ? 'bg-slate-800 hover:bg-slate-900 text-white' : ''}`}
                   >
-                    Explorer le rendu <ExternalLink className="h-4 w-4" />
+                    <span>Explorer le rendu</span>
+                    <ExternalLink className="h-4 w-4 flex-shrink-0" />
                   </Button>
                   <p className="text-center text-xs text-slate-500">
                     Le projet s&apos;ouvre dans un nouvel onglet.

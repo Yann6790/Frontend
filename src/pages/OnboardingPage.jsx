@@ -226,12 +226,12 @@ export default function OnboardingPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting || !promotionId || !groupId}
-                  className="h-11 w-full bg-purple-600 font-semibold text-white hover:bg-purple-700"
+                  className="h-11 w-full bg-purple-600 font-semibold text-white hover:bg-purple-700 px-4 py-2 gap-2 flex items-center justify-center"
                 >
                   {isSubmitting ? (
                     <>
-                      <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      Envoi en cours...
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white flex-shrink-0" />
+                      <span>Envoi en cours...</span>
                     </>
                   ) : (
                     "Envoyer ma demande"

@@ -179,7 +179,7 @@ export default function AdminStudentValidation() {
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-10 mt-16 flex flex-col gap-6">
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
-          <h1 className="text-3xl font-black text-slate-950 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-950 tracking-tight">
             Validation des inscriptions étudiants
           </h1>
           {/* Notification Toast */}
@@ -224,86 +224,83 @@ export default function AdminStudentValidation() {
           </div>
         </div>
 
-        {/* Zone d'affichage (Tableau strict) */}
-        <div className="bg-white border border-slate-200 overflow-x-auto shadow-sm rounded-xl">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
-              <tr>
-                <th className="py-4 px-6 font-bold">Nom & Prénom</th>
-                <th className="py-4 px-6 font-bold">Email</th>
-                <th className="py-4 px-6 font-bold text-center">Promo demandée</th>
-                <th className="py-4 px-6 font-bold text-center">Groupe TP demandé</th>
-                <th className="py-4 px-6 font-bold text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan="5" className="py-20 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
-                      <span className="text-slate-500 font-medium">Chargement des demandes...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="py-4 px-6">
-                      <div className="font-bold text-slate-950 uppercase tracking-tight">
-                        {student.lastname || student.name?.lastname} <span className="capitalize font-medium text-slate-600">{student.firstname || student.name?.firstname}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 text-slate-500 font-medium">
-                      {student.email}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold ring-1 ring-slate-200">
+        {/* Zone d'affichage (Cartes) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-full rounded-xl bg-white border border-slate-200 p-6 animate-pulse">
+                <div className="space-y-4">
+                  <div className="h-4 bg-slate-200 rounded"></div>
+                  <div className="h-3 bg-slate-200 rounded w-3/4"></div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                    <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-8 bg-slate-200 rounded flex-1"></div>
+                    <div className="h-8 bg-slate-200 rounded flex-1"></div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : filteredStudents.length > 0 ? (
+            filteredStudents.map((student) => (
+              <div key={student.id} className="h-full rounded-xl bg-white border border-slate-200 p-6 hover:border-slate-300 transition-colors">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-950 uppercase tracking-tight">
+                      {student.lastname || student.name?.lastname} <span className="capitalize font-medium text-slate-600">{student.firstname || student.name?.firstname}</span>
+                    </h3>
+                    <p className="text-sm text-slate-600">{student.email}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-500 uppercase">Promo demandée</span>
+                      <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold ring-1 ring-slate-200">
                         {getPromoName(student)}
                       </span>
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold ring-1 ring-slate-200">
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-500 uppercase">Groupe TP demandé</span>
+                      <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold ring-1 ring-slate-200">
                         {getGroupName(student)}
                       </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          onClick={() => handleAccept(student.id)}
-                          disabled={isActionLoading}
-                          variant="admin"
-                          className="text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
-                        >
-                          Accepter
-                        </Button>
-                        <Button
-                          onClick={() => handleRefuse(student.id)}
-                          disabled={isActionLoading}
-                          className="bg-white hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-300 hover:border-red-300 text-[11px] uppercase tracking-wider font-black px-4 py-2 rounded-lg transition-all shadow-sm disabled:opacity-50"
-                        >
-                          Refuser
-                        </Button>
-                        <Button
-                          onClick={() => handleEditClick(student)}
-                          disabled={isActionLoading}
-                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] uppercase tracking-wider font-black px-3 py-2 rounded-lg transition-all disabled:opacity-50"
-                        >
-                          Modifier
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="py-20 text-center text-slate-400 font-medium italic">
-                    Aucune demande en attente.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      onClick={() => handleAccept(student.id)}
+                      disabled={isActionLoading}
+                      variant="admin"
+                      className="h-10 px-4 py-2 gap-2 flex items-center justify-center"
+                    >
+                      <span>Accepter</span>
+                    </Button>
+                    <Button
+                      onClick={() => handleRefuse(student.id)}
+                      disabled={isActionLoading}
+                      variant="adminOutline"
+                      className="h-10 px-4 py-2 gap-2 flex items-center justify-center"
+                    >
+                      <span>Refuser</span>
+                    </Button>
+                    <Button
+                      onClick={() => handleEditClick(student)}
+                      disabled={isActionLoading}
+                      variant="adminOutline"
+                      className="h-10 px-3 py-2 gap-2 flex items-center justify-center"
+                    >
+                      <span>Modifier</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full flex items-center justify-center py-20">
+              <p className="text-slate-400 font-medium italic">Aucune demande en attente.</p>
+            </div>
+          )}
         </div>
       </main>
 

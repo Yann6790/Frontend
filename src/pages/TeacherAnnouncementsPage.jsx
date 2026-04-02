@@ -246,7 +246,7 @@ export default function TeacherAnnouncementsPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-1 hover:bg-slate-100 rounded-lg transition-all duration-200 active:scale-95 flex flex-row items-center justify-center whitespace-nowrap w-fit gap-2"
               >
                 <X className="w-5 h-5 text-slate-500" />
               </button>

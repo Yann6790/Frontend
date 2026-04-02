@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Spinner } from '../components/ui/spinner';
 import AdminNavbar from '../components/AdminNavbar';
 import SharedGallery from '../components/SharedGallery';
 import { resourcesService } from '../services/resources.service';
@@ -339,10 +340,9 @@ function SaeFormModal({ saeList, semesters, thematics, banners, teachers, onClos
             <Button
               type="submit"
               variant="admin"
-              disabled={isSubmitting}
+              loading={isSubmitting}
               className="px-5 py-2.5 font-bold text-sm rounded-lg transition-all shadow-sm flex items-center gap-2"
             >
-              {isSubmitting && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               Créer la SAE
             </Button>
           </div>
@@ -501,13 +501,23 @@ export default function AdminSaeManagement() {
 
   // ── Modération Galerie ──
   const handleDeleteSubmission = async (saeId, id) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer/cacher cette réalisation étudiante ?")) return;
+    if (!window.confirm("Voulez-vous vraiment supprimer définitivement cette réalisation étudiante ?")) return;
     try {
       await saeService.deleteSubmission(saeId, id);
       showNotification("Réalisation supprimée de la galerie.");
       setRefreshGallery(prev => prev + 1);
     } catch (err) {
       showNotification(err.message || "Erreur lors de la suppression du rendu.", "error");
+    }
+  };
+
+  const handleHideSubmission = async (saeId, submissionId) => {
+    try {
+      await saeService.updateSubmissionVisibility(saeId, submissionId, false);
+      showNotification("Réalisation masquée de la galerie publique.");
+    } catch (err) {
+      showNotification(err.message || "Erreur lors du masquage du rendu.", "error");
+      throw err; // Permet à SharedGallery de ne pas retirer la carte si échec
     }
   };
 
@@ -658,10 +668,10 @@ export default function AdminSaeManagement() {
                 <Button
                   onClick={handleBatchDelete}
                   variant="admin"
-                  disabled={!deleteYear || isBulkDeleting}
+                  loading={isBulkDeleting}
+                  disabled={!deleteYear}
                   className="hover:bg-red-600 text-xs font-bold uppercase px-3 py-2 rounded-lg transition disabled:opacity-40 flex items-center gap-1.5"
                 >
-                  {isBulkDeleting && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   Supprimer
                 </Button>
               </div>
@@ -686,7 +696,7 @@ export default function AdminSaeManagement() {
                     <tr>
                       <td colSpan="7" className="py-20 text-center">
                         <div className="flex flex-col items-center gap-3">
-                          <div className="w-8 h-8 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+                          <Spinner size="lg" variant="slate" />
                           <span className="text-slate-500 font-medium">Chargement des SAE...</span>
                         </div>
                       </td>
@@ -784,10 +794,10 @@ export default function AdminSaeManagement() {
                 />
                 <Button
                   onClick={handleBatchDeleteGallery}
-                  disabled={!deleteGalleryYear || isBulkDeletingGallery}
+                  loading={isBulkDeletingGallery}
+                  disabled={!deleteGalleryYear}
                   className="bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg transition disabled:opacity-40 flex items-center gap-1.5"
                 >
-                  {isBulkDeletingGallery && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   Supprimer tout
                 </Button>
               </div>
@@ -798,7 +808,8 @@ export default function AdminSaeManagement() {
                 canModerate={true} 
                 isAdminView={true} 
                 refreshTrigger={refreshGallery} 
-                onDelete={handleDeleteSubmission} 
+                onDelete={handleDeleteSubmission}
+                onHide={handleHideSubmission}
               />
             </div>
           </div>

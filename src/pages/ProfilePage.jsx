@@ -196,20 +196,20 @@ export default function ProfilePage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="w-full px-4 py-2 h-10 gap-2 flex items-center justify-center"
                     onClick={cancelAvatarChange}
                     disabled={isUploadingAvatar}
                   >
-                    Annuler
+                    <span>Annuler</span>
                   </Button>
                   <Button
                     type="button"
                     variant="admin"
-                    className="w-full"
+                    className="w-full px-4 py-2 h-10 gap-2 flex items-center justify-center"
                     onClick={handleSaveAvatar}
-                    disabled={isUploadingAvatar}
+                    loading={isUploadingAvatar}
                   >
-                    {isUploadingAvatar ? "Sauvegarde..." : "Sauvegarder"}
+                    <span>Sauvegarder</span>
                   </Button>
                 </div>
               )}
@@ -229,7 +229,7 @@ export default function ProfilePage() {
                     Nom complet
                   </p>
                   <p className="mt-1 text-lg font-semibold text-slate-900">
-                    {user?.firstname || user?.name?.firstname || "Utilisateur"}{" "}
+                    {user?.firstname || user?.name?.firstname}{" "}
                     {user?.lastname || user?.name?.lastname || ""}
                   </p>
                 </div>
@@ -349,12 +349,10 @@ export default function ProfilePage() {
                 <Button
                   type="submit"
                   variant="admin"
-                  disabled={isChangingPassword}
-                  className="mt-2 w-full font-bold uppercase tracking-wider h-11"
+                  loading={isChangingPassword}
+                  className="mt-2 w-full font-bold uppercase tracking-wider h-11 px-4 py-2 gap-2 flex items-center justify-center"
                 >
-                  {isChangingPassword
-                    ? "Modification..."
-                    : "Mettre a jour le mot de passe"}
+                  <span>Mettre a jour le mot de passe</span>
                 </Button>
               </div>
             </form>

@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import IllustratedState from "../components/IllustratedState";
+import { Spinner } from "../components/ui/spinner";
 import { saeService } from "../services/sae.service";
 
 export default function StudentSaeDetailPage() {
@@ -142,7 +143,7 @@ export default function StudentSaeDetailPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -657,17 +658,11 @@ export default function StudentSaeDetailPage() {
                           <div className="flex justify-end">
                             <Button
                               onClick={() => handlePhaseSubmit(currentPhase.id)}
-                              disabled={
-                                isSubmitting[currentPhase.id] ||
-                                !phaseInput[currentPhase.id]?.trim()
-                              }
+                              loading={isSubmitting[currentPhase.id]}
+                              disabled={!phaseInput[currentPhase.id]?.trim()}
                               className="bg-purple-600 hover:bg-purple-700 text-white disabled:bg-slate-300"
                             >
-                              {isSubmitting[currentPhase.id] ? (
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                              ) : (
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                              )}
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
                               Valider ce palier
                             </Button>
                           </div>

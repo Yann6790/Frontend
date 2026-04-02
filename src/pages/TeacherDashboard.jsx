@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Calendar, Eye, EyeOff } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import mmiLogo from "../Images/mmilogo.png";
+import { Spinner } from "../components/ui/spinner";
 import { resourcesService } from "../services/resources.service";
 import { saeService } from "../services/sae.service";
 
@@ -171,7 +172,7 @@ export default function TeacherDashboard() {
           </p>
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1 space-y-3">
-              <h1 className="text-4xl font-black tracking-tight text-slate-950">
+              <h1 className="text-2xl font-black tracking-tight text-slate-950">
                 Bonjour{" "}
                 {user?.firstname || user?.name?.firstname || "Enseignant"}
               </h1>
@@ -209,7 +210,7 @@ export default function TeacherDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative h-12 px-6 py-3 font-semibold text-sm whitespace-nowrap transition border-b-2 flex items-center gap-2 ${
+              className={`relative h-12 px-6 py-3 font-semibold text-sm whitespace-nowrap transition border-b-2 flex flex-row items-center justify-center w-fit gap-2 transition-all duration-200 active:scale-95 ${
                 activeTab === tab.id
                   ? "border-purple-600 text-purple-600"
                   : "border-transparent text-slate-600 hover:text-slate-900"
@@ -232,7 +233,7 @@ export default function TeacherDashboard() {
         <div className="mt-4">
           {authLoading || isLoading ? (
             <div className="flex h-96 flex-col items-center justify-center gap-4 text-center">
-              <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
+              <Spinner size="lg" />
               <p className="text-base font-medium text-slate-600">
                 Chargement de vos SAE...
               </p>
@@ -288,7 +289,7 @@ export default function TeacherDashboard() {
                       )}
 
                       {/* Header with badges */}
-                      <div className="px-5 pt-5 pb-3 border-b border-slate-100 space-y-3">
+                      <div className="px-6 pt-6 pb-3 border-b border-slate-100 space-y-3">
                         <div className="flex items-start justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2 flex-wrap">
                             <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 text-xs font-semibold px-2.5 py-1 uppercase">
@@ -338,7 +339,7 @@ export default function TeacherDashboard() {
                       </div>
 
                       {/* Content */}
-                      <div className="p-5 space-y-4 flex-1 flex flex-col">
+                      <div className="p-6 space-y-4 flex-1 flex flex-col">
                         {/* Title */}
                         <h3 className="text-lg font-bold text-slate-950 group-hover:text-purple-600 transition leading-snug">
                           {sae.title}
@@ -378,22 +379,22 @@ export default function TeacherDashboard() {
                         {/* Actions */}
                         <div className="flex gap-2 pt-2 flex-wrap">
                           <Button
-                            className="flex-1 bg-purple-600 text-white hover:bg-purple-700 font-bold rounded-lg h-10"
+                            className="flex-1 bg-purple-600 text-white hover:bg-purple-700 font-bold rounded-lg h-10 px-4 py-2 gap-2 flex items-center justify-center"
                             size="sm"
                           >
-                            Gérer
+                            <span>Gérer</span>
                           </Button>
                           {!sae.isPublished && (
                             <Button
                               variant="outline"
-                              className="bg-green-600 text-white hover:bg-green-700 border-green-600 font-bold rounded-lg h-10"
+                              className="bg-purple-600 text-white hover:bg-purple-700 border-purple-600 font-bold rounded-lg h-10 px-3 py-2 gap-2 flex items-center justify-center"
                               size="sm"
                               onClick={(e) => {
                                 e.preventDefault();
                                 handlePublish(sae.id, e);
                               }}
                             >
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-4 h-4 flex-shrink-0" />
                             </Button>
                           )}
                         </div>
