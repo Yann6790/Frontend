@@ -13,7 +13,6 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import IllustratedState from "../components/IllustratedState";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -199,14 +198,8 @@ export default function StudentSaeSubmissionPage() {
   // ────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="bg-white">
-        <IllustratedState
-          imageSrc="/images/undraw_work-time_1ogn.svg"
-          imageAlt="Chargement du rendu SAE"
-          title="Chargement du rendu SAE"
-          description="Nous recuperons les informations de votre soumission."
-          className="min-h-screen"
-        />
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
       </div>
     );
   }

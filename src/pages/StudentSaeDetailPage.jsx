@@ -141,14 +141,8 @@ export default function StudentSaeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-white">
-        <IllustratedState
-          imageSrc="/images/undraw_work-time_1ogn.svg"
-          imageAlt="Chargement de la SAE"
-          title="Chargement de la SAE"
-          description="Nous preparons les details, documents et paliers."
-          className="min-h-screen"
-        />
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
       </div>
     );
   }
@@ -414,13 +408,16 @@ export default function StudentSaeDetailPage() {
                         </p>
                         <p className="text-lg font-semibold text-slate-950">
                           {sae.dueDate
-                            ? new Date(sae.dueDate).toLocaleDateString("fr-FR", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
+                            ? new Date(sae.dueDate).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )
                             : "Non définie"}
                         </p>
                         <p className="text-sm text-slate-600">

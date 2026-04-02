@@ -66,7 +66,10 @@ export default function StudentRendusPage() {
         if (semObj) {
           const num =
             semObj.number ??
-            parseInt((semObj.name || semObj.label || "").replace(/\D/g, ""), 10);
+            parseInt(
+              (semObj.name || semObj.label || "").replace(/\D/g, ""),
+              10,
+            );
           semLabel = num ? `S${num}` : semObj.name || semObj.label || "S?";
         }
 
@@ -129,8 +132,7 @@ export default function StudentRendusPage() {
   }, [selectedSemestre, selectedMatiere, rendus]);
 
   const isApiFetchFail =
-    !!fetchError &&
-    /(failed to fetch|network|fetch)/i.test(fetchError);
+    !!fetchError && /(failed to fetch|network|fetch)/i.test(fetchError);
 
   return (
     <div className="min-h-screen bg-white font-montserrat">
@@ -195,13 +197,9 @@ export default function StudentRendusPage() {
         )}
 
         {isLoading ? (
-          <IllustratedState
-            imageSrc="/images/undraw_completing_3pe7.svg"
-            imageAlt="Chargement des rendus"
-            title="Chargement des rendus"
-            description="Nous recuperons vos depots et vos evaluations."
-            className="min-h-72"
-          />
+          <div className="flex min-h-72 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
+          </div>
         ) : fetchError ? (
           <IllustratedState
             imageSrc="/images/undraw_completing_3pe7.svg"
@@ -246,76 +244,76 @@ export default function StudentRendusPage() {
               ))}
 
             {displayedRendus.map((rendu) => {
-                const noteValue = Number(rendu.note);
-                const hasGrade =
-                  rendu.note !== "Non note" && !Number.isNaN(noteValue);
+              const noteValue = Number(rendu.note);
+              const hasGrade =
+                rendu.note !== "Non note" && !Number.isNaN(noteValue);
 
-                return (
-                  <Link
-                    to={`/sae/${rendu.id}/rendu?mode=view`}
-                    key={rendu.id}
-                    className="group block"
-                  >
-                    <article className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm">
-                      {rendu.banniere && (
-                        <div className="mb-5 h-36 overflow-hidden rounded-xl bg-slate-100">
-                          <img
-                            src={rendu.banniere}
-                            alt={rendu.titre}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      )}
+              return (
+                <Link
+                  to={`/sae/${rendu.id}/rendu?mode=view`}
+                  key={rendu.id}
+                  className="group block"
+                >
+                  <article className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm">
+                    {rendu.banniere && (
+                      <div className="mb-5 h-36 overflow-hidden rounded-xl bg-slate-100">
+                        <img
+                          src={rendu.banniere}
+                          alt={rendu.titre}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
 
-                      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                        <div className="flex flex-wrap gap-2">
-                          <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">
-                            {rendu.semestre}
-                          </Badge>
-                          <Badge variant="outline" className="text-slate-700">
-                            {rendu.matiere}
-                          </Badge>
-                        </div>
-
-                        {hasGrade ? (
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                              noteValue >= 10
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
-                            }`}
-                          >
-                            Note : {noteValue}/20
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                            En attente de note
-                          </span>
-                        )}
+                    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">
+                          {rendu.semestre}
+                        </Badge>
+                        <Badge variant="outline" className="text-slate-700">
+                          {rendu.matiere}
+                        </Badge>
                       </div>
 
-                      <h2 className="mb-2 text-2xl font-medium tracking-tight text-slate-950 group-hover:text-purple-600">
-                        {rendu.titre}
-                      </h2>
-
-                      <p className="mb-5 text-sm text-slate-600">
-                        Depose ou echeance le{" "}
-                        {new Date(rendu.dateDepot).toLocaleDateString("fr-FR", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </p>
-
-                      <div className="flex items-center justify-end border-t border-slate-100 pt-4">
-                        <span className="inline-flex h-9 items-center rounded-lg bg-purple-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-purple-700">
-                          Voir le rendu
+                      {hasGrade ? (
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            noteValue >= 10
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          Note : {noteValue}/20
                         </span>
-                      </div>
-                    </article>
-                  </Link>
-                );
-              })}
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                          En attente de note
+                        </span>
+                      )}
+                    </div>
+
+                    <h2 className="mb-2 text-2xl font-medium tracking-tight text-slate-950 group-hover:text-purple-600">
+                      {rendu.titre}
+                    </h2>
+
+                    <p className="mb-5 text-sm text-slate-600">
+                      Depose ou echeance le{" "}
+                      {new Date(rendu.dateDepot).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+
+                    <div className="flex items-center justify-end border-t border-slate-100 pt-4">
+                      <span className="inline-flex h-9 items-center rounded-lg bg-purple-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-purple-700">
+                        Voir le rendu
+                      </span>
+                    </div>
+                  </article>
+                </Link>
+              );
+            })}
           </section>
         )}
       </main>

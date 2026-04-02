@@ -183,7 +183,7 @@ export default function TeacherDashboard() {
             <img
               src={mmiLogo}
               alt="Logo MMI"
-              className="h-14 w-auto flex-shrink-0"
+              className="h-[4.5rem] w-auto flex-shrink-0"
             />
           </div>
         </div>

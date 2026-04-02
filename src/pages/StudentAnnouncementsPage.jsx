@@ -28,8 +28,7 @@ export default function StudentAnnouncementsPage() {
     } catch (err) {
       console.error("Erreur de chargement des annonces", err);
       setFetchError(
-        err?.message ||
-          "Impossible de charger les annonces pour le moment.",
+        err?.message || "Impossible de charger les annonces pour le moment.",
       );
     } finally {
       setIsLoading(false);
@@ -66,8 +65,7 @@ export default function StudentAnnouncementsPage() {
   }, [announcements, selectedMatiere]);
 
   const isApiFetchFail =
-    !!fetchError &&
-    /(failed to fetch|network|fetch)/i.test(fetchError);
+    !!fetchError && /(failed to fetch|network|fetch)/i.test(fetchError);
 
   return (
     <div className="min-h-screen bg-white font-montserrat">
@@ -112,13 +110,9 @@ export default function StudentAnnouncementsPage() {
         )}
 
         {isLoading ? (
-          <IllustratedState
-            imageSrc="/images/undraw_pin-to-board_eoie.svg"
-            imageAlt="Chargement des annonces"
-            title="Chargement des annonces"
-            description="Nous preparons les dernieres communications de vos SAE."
-            className="min-h-72"
-          />
+          <div className="flex min-h-72 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
+          </div>
         ) : fetchError ? (
           <IllustratedState
             imageSrc="/images/undraw_pin-to-board_eoie.svg"

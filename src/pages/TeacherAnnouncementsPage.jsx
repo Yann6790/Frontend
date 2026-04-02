@@ -267,13 +267,9 @@ export default function TeacherAnnouncementsPage() {
 
         {/* Liste des annonces */}
         {isLoading ? (
-          <IllustratedState
-            imageSrc="/images/undraw_pin-to-board_eoie.svg"
-            imageAlt="Chargement des annonces"
-            title="Chargement des annonces"
-            description="Nous recuperons vos annonces et vos SAE."
-            className="min-h-72"
-          />
+          <div className="flex min-h-72 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
+          </div>
         ) : fetchError ? (
           <IllustratedState
             imageSrc="/images/undraw_pin-to-board_eoie.svg"

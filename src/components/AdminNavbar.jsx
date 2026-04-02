@@ -21,7 +21,7 @@ export default function AdminNavbar() {
     <nav className="fixed top-4 left-4 right-4 mx-auto max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200 px-6 h-16 grid grid-cols-[1fr_auto_1fr] items-center rounded-full z-50 font-montserrat">
       {/* Left: Logo */}
       <div className="flex items-center min-w-0">
-        <img src={mmiLogo} alt="Logo MMI" className="h-10 w-auto" />
+        <img src={mmiLogo} alt="Logo MMI" className="h-14 w-auto" />
       </div>
 
       {/* Center: Navigation Links */}
