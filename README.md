@@ -40,6 +40,17 @@ Générer la version optimisée pour la production :
 npm run build
 ```
 
+## Deploiement Vercel (Auth)
+
+Pour eviter les erreurs de session en production (cookie bloque en cross-site),
+ce projet utilise un rewrite Vercel de `/api/*` vers le backend Render via `vercel.json`.
+
+Points importants :
+
+- Ne pas definir `VITE_API_URL` en production Vercel (laisser vide/inexistante)
+- Garder les appels frontend en URL relative (`/api/...`)
+- Verifier que l'origine Vercel est autorisee cote backend
+
 ## Linting
 
 Vérifier la qualité du code :
