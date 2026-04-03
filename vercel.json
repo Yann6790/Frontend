@@ -5,7 +5,7 @@
       "destination": "https://ecampus-mmi.onrender.com/api/:path*"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
