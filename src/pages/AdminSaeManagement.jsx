@@ -50,6 +50,20 @@ function getSemesterLabel(sem) {
   return sem.name || sem.label || "—";
 }
 
+const ALLOWED_PROMOTION_LABELS = new Set(["MM1", "MM2", "MM3"]);
+
+function normalizePromotionLabel(label) {
+  return String(label || "")
+    .toUpperCase()
+    .replace(/\s+/g, "")
+    .replace("MMI", "MM");
+}
+
+function isAllowedSemesterPromotion(semester) {
+  const normalized = normalizePromotionLabel(semester?.promotion?.label);
+  return ALLOWED_PROMOTION_LABELS.has(normalized);
+}
+
 /**
  * Valide le format d'un UUID.
  */
@@ -512,7 +526,19 @@ export default function AdminSaeManagement() {
     Promise.all([
       safeLoad(
         "semesters",
-        () => resourcesService.getSemesters(),
+        async () => {
+          const allSemesters = await resourcesService.getSemesters();
+          const filteredSemesters = allSemesters.filter(
+            isAllowedSemesterPromotion,
+          );
+
+          console.log(
+            "[AdminSAE] Semestres filtrés MM1/MM2/MM3:",
+            filteredSemesters,
+          );
+
+          return filteredSemesters;
+        },
         setSemesters,
       ),
       safeLoad(
