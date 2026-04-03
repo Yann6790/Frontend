@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AdminNavbar from "../components/AdminNavbar";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { adminService } from "../services/admin.service";
@@ -28,12 +28,13 @@ export default function AdminStudentValidation() {
   // État de la modale de modification
   const [editingStudent, setEditingStudent] = useState(null);
 
-  // 1. Chargement initial des données
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const showNotification = useCallback((message, type = "success") => {
+    setNotification({ message, type });
+    // Auto-hide après 5 secondes
+    setTimeout(() => setNotification({ message: "", type: "" }), 5000);
+  }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Chargement parallèle des étudiants et des ressources
@@ -53,13 +54,12 @@ export default function AdminStudentValidation() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [showNotification]);
 
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
-    // Auto-hide après 5 secondes
-    setTimeout(() => setNotification({ message: "", type: "" }), 5000);
-  };
+  // 1. Chargement initial des données
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // 2. Logique de filtrage
   const filteredStudents = pendingStudents.filter((student) => {

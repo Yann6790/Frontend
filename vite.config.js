@@ -23,10 +23,6 @@ export default defineConfig({
           process.env.VITE_PROXY_TARGET || "https://ecampus-mmi.onrender.com",
         changeOrigin: true,
         secure: true,
-        headers: {
-          Origin: "https://ecampus-mmi.onrender.com",
-          Referer: "https://ecampus-mmi.onrender.com/",
-        },
         configure: (proxy) => {
           proxy.on("proxyRes", (proxyRes) => {
             const setCookie = proxyRes.headers["set-cookie"];
