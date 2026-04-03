@@ -502,6 +502,10 @@ export default function TeacherSaeDetailPage() {
   // Handlers : Invitations
   // ─────────────────────────────────────────────────────────────────
   const handleInviteTeacher = async (userId) => {
+    if (!userId) {
+      alert("Impossible d'inviter ce professeur : identifiant manquant.");
+      return;
+    }
     try {
       await saeService.addInvitation(id, userId);
       const invRes = await saeService.getInvitations(id);
@@ -1756,10 +1760,8 @@ export default function TeacherSaeDetailPage() {
                           })
                           .map((t) => (
                             <button
-                              key={t.email}
-                              onClick={() =>
-                                handleInviteTeacher(t.email, t.name)
-                              }
+                              key={t.id || t.email}
+                              onClick={() => handleInviteTeacher(t.id)}
                               className="w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors border-b border-slate-100 text-sm font-medium text-slate-800"
                             >
                               {t.name?.firstname} {t.name?.lastname}
