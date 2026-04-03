@@ -179,7 +179,7 @@ export default function TeacherDashboard() {
                 {user?.firstname || user?.name?.firstname || "Enseignant"}
               </h1>
               <p className="text-base text-slate-600">
-                Gérez vos SAE, publiez du contenu et suivisez l'avancée des
+                Gérez vos SAE, publiez du contenu et suivez l'avancée des
                 projets.
               </p>
             </div>

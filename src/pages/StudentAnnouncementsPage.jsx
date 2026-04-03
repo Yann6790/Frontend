@@ -74,7 +74,7 @@ export default function StudentAnnouncementsPage() {
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-12 pt-28 sm:px-8">
         <section className="space-y-2">
           <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Espace etudiant
+            Espace étudiant
           </p>
           <h1 className="text-4xl font-black tracking-tight text-slate-950">
             Annonces
@@ -87,7 +87,7 @@ export default function StudentAnnouncementsPage() {
         {allMatieres.length > 0 && (
           <section className="space-y-3">
             <p className="text-sm font-semibold text-slate-600">
-              Filtrer par matiere :
+              Filtrer par matière :
             </p>
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
               {allMatieres.map((matiere) => {
@@ -121,12 +121,12 @@ export default function StudentAnnouncementsPage() {
             imageAlt="Erreur de chargement des annonces"
             title={
               isApiFetchFail
-                ? "Echec de connexion a l'API"
+                ? "Échec de connexion à l'API"
                 : "Erreur de chargement"
             }
             description={
               isApiFetchFail
-                ? "La connexion au serveur a echoue. Verifiez votre connexion puis reessayez."
+                ? "La connexion au serveur a échoué. Vérifiez votre connexion puis réessayez."
                 : "Une erreur est survenue pendant le chargement des annonces."
             }
             action={
@@ -135,7 +135,7 @@ export default function StudentAnnouncementsPage() {
                 onClick={loadAnnouncements}
                 className="inline-flex h-9 items-center justify-center rounded-lg bg-purple-600 px-4 py-2 gap-2 text-sm font-semibold text-white transition-all duration-200 active:scale-95 hover:bg-purple-700"
               >
-                Reessayer
+                Réessayer
               </button>
             }
           />
@@ -228,14 +228,14 @@ export default function StudentAnnouncementsPage() {
                   imageSrc="/images/undraw_pin-to-board_eoie.svg"
                   imageAlt="Aucune annonce"
                   title="Aucune annonce"
-                  description="Les nouvelles communications de vos professeurs apparaitront ici."
+                  description="Les nouvelles communications de vos professeurs apparaîtront ici."
                 />
               ) : (
                 <IllustratedState
                   imageSrc="/images/undraw_pin-to-board_eoie.svg"
                   imageAlt="Aucune annonce pour ces filtres"
                   title="Aucune annonce pour ces filtres"
-                  description="Essayez une autre matiere pour afficher des communications."
+                  description="Essayez une autre matière pour afficher des communications."
                 />
               ))}
           </section>

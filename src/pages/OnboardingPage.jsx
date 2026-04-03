@@ -105,14 +105,14 @@ export default function OnboardingPage() {
       <main className="mx-auto flex w-full max-w-7xl flex-col px-6 py-16 sm:px-8">
         <section className="mx-auto w-full max-w-3xl space-y-3">
           <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-            Etape finale
+            Étape finale
           </p>
           <h1 className="text-4xl font-black tracking-tight text-slate-950">
-            Finalisez votre profil etudiant
+            Finalisez votre profil étudiant
           </h1>
           <p className="text-base text-slate-600">
             Indiquez votre promotion, votre groupe et ajoutez une photo de
-            profil. Votre demande sera ensuite validee par un administrateur.
+            profil. Votre demande sera ensuite validée par un administrateur.
           </p>
         </section>
 
@@ -120,7 +120,7 @@ export default function OnboardingPage() {
           <Card className="rounded-2xl border-slate-200 shadow-none">
             <CardHeader className="space-y-2">
               <CardTitle className="text-xl font-semibold text-slate-950">
-                Informations de scolarite
+                Informations de scolarité
               </CardTitle>
             </CardHeader>
 

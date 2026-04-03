@@ -67,10 +67,10 @@ const LoginPage = () => {
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-3 text-center">
                 <h1 className="text-4xl font-extrabold tracking-tight text-slate-950">
-                  Accédez a votre espace
+                  Accédez à votre espace
                 </h1>
                 <p className="text-base text-slate-500">
-                  Gerez votre scolarite MMI avec fluidite sur Welizy.
+                  Gérez votre scolarité MMI avec fluidité sur Welizy.
                 </p>
               </div>
 

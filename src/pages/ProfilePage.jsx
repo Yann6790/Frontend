@@ -79,13 +79,13 @@ export default function ProfilePage() {
       await refreshUser();
 
       setNotification({
-        message: "Avatar mis a jour avec succes.",
+        message: "Avatar mis à jour avec succès.",
         type: "success",
       });
       cancelAvatarChange();
     } catch (err) {
       setNotification({
-        message: err.message || "Erreur lors de la mise a jour",
+        message: err.message || "Erreur lors de la mise à jour",
         type: "error",
       });
     } finally {
@@ -108,7 +108,7 @@ export default function ProfilePage() {
 
     if (passwords.newPassword.length < 6) {
       setNotification({
-        message: "Le nouveau mot de passe doit faire au moins 6 caracteres.",
+        message: "Le nouveau mot de passe doit faire au moins 6 caractères.",
         type: "error",
       });
       return;
@@ -127,7 +127,7 @@ export default function ProfilePage() {
       }
 
       setNotification({
-        message: "Mot de passe modifie avec succes.",
+        message: "Mot de passe modifié avec succès.",
         type: "success",
       });
       setPasswords({
@@ -158,7 +158,7 @@ export default function ProfilePage() {
             Profil
           </h1>
           <p className="text-base text-slate-600">
-            Gerez vos informations personnelles et votre securite.
+            Gérez vos informations personnelles et votre sécurité.
           </p>
         </section>
 
@@ -290,7 +290,7 @@ export default function ProfilePage() {
                             user?.promotionId ||
                             user?.studentProfile?.promotion?.name ||
                             user?.studentProfile?.promotionId ||
-                            "Non assignee"}
+                            "Non assignée"}
                       </Badge>
                     </div>
 
@@ -302,7 +302,7 @@ export default function ProfilePage() {
                         {user?.group ||
                           user?.groupTp ||
                           user?.studentProfile?.groupTp ||
-                          "Non assigne"}
+                          "Non assigné"}
                       </Badge>
                     </div>
                   </>
@@ -328,7 +328,7 @@ export default function ProfilePage() {
                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                   />
                 </svg>
-                Securite
+                Sécurité
               </h2>
 
               <div className="space-y-4">
@@ -395,7 +395,7 @@ export default function ProfilePage() {
                   loading={isChangingPassword}
                   className="mt-2 w-full font-bold uppercase tracking-wider h-11 px-4 py-2 gap-2 flex items-center justify-center"
                 >
-                  <span>Mettre a jour le mot de passe</span>
+                  <span>Mettre à jour le mot de passe</span>
                 </Button>
               </div>
             </form>

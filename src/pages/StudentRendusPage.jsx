@@ -94,7 +94,7 @@ export default function StudentRendusPage() {
       console.error("Erreur lors du chargement des rendus :", err);
       setFetchError(
         err?.message ||
-          "Impossible de charger vos rendus pour le moment. Veuillez reessayer dans quelques instants.",
+          "Impossible de charger vos rendus pour le moment. Veuillez réessayer dans quelques instants.",
       );
     } finally {
       setIsLoading(false);
@@ -128,7 +128,7 @@ export default function StudentRendusPage() {
       filtered = filtered.filter((r) => r.matiere === selectedMatiere);
     }
 
-    // Tri decroissant par defaut (les plus recents en premier)
+    // Tri décroissant par défaut (les plus récents en premier)
     filtered.sort((a, b) => new Date(b.dateDepot) - new Date(a.dateDepot));
 
     return filtered;
@@ -142,13 +142,13 @@ export default function StudentRendusPage() {
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-12 pt-28 sm:px-8">
         <section className="space-y-2">
           <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Espace etudiant
+            Espace étudiant
           </p>
           <h1 className="text-4xl font-black tracking-tight text-slate-950">
             Mes rendus
           </h1>
           <p className="text-base text-slate-600">
-            Consultez vos travaux deja remis et leurs evaluations.
+            Consultez vos travaux déjà remis et leurs évaluations.
           </p>
         </section>
 
@@ -173,7 +173,7 @@ export default function StudentRendusPage() {
 
             <div className="space-y-3">
               <p className="text-sm font-semibold text-slate-600">
-                Filtrer par matiere :
+                Filtrer par matière :
               </p>
               <div className="flex items-center gap-2 overflow-x-auto pb-2">
                 {allMatieres.map((matiere) => {
@@ -209,12 +209,12 @@ export default function StudentRendusPage() {
             imageAlt="Erreur de chargement des rendus"
             title={
               isApiFetchFail
-                ? "Echec de connexion a l'API"
+                ? "Échec de connexion à l'API"
                 : "Erreur de chargement"
             }
             description={
               isApiFetchFail
-                ? "La connexion au serveur a echoue. Verifiez le reseau puis reessayez."
+                ? "La connexion au serveur a échoué. Vérifiez le réseau puis réessayez."
                 : "Impossible de charger vos rendus pour le moment."
             }
             action={
@@ -223,7 +223,7 @@ export default function StudentRendusPage() {
                 onClick={loadRendus}
                 className="inline-flex h-9 items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white whitespace-nowrap w-fit gap-2 transition-all duration-200 active:scale-95"
               >
-                Reessayer
+                Réessayer
               </button>
             }
           />
@@ -242,7 +242,7 @@ export default function StudentRendusPage() {
                   imageSrc="/images/undraw_completing_3pe7.svg"
                   imageAlt="Aucun rendu pour ces filtres"
                   title="Aucun rendu pour ces filtres"
-                  description="Essayez un autre semestre ou une autre matiere."
+                     description="Essayez un autre semestre ou une autre matière."
                 />
               ))}
 

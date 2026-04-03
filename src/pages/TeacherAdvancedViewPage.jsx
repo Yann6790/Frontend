@@ -42,7 +42,7 @@ export default function TeacherAdvancedViewPage() {
             const fullName =
               `${sub?.name?.firstname || ""} ${sub?.name?.lastname || ""}`.trim() ||
               `${sub?.student?.firstname || ""} ${sub?.student?.lastname || ""}`.trim() ||
-              "Etudiant";
+              "Étudiant";
 
             rows.push({
               id: sub.id,
@@ -56,7 +56,7 @@ export default function TeacherAdvancedViewPage() {
               matiere:
                 typeof sae.thematic === "string"
                   ? sae.thematic
-                  : sae.thematic?.label || sae.thematic?.name || "Non definie",
+                  : sae.thematic?.label || sae.thematic?.name || "Non définie",
               publicationDate: sub.submittedAt || sae.createdAt,
               isForceHidden: sub.isPublic === false,
             });
@@ -65,8 +65,8 @@ export default function TeacherAdvancedViewPage() {
 
         setRealizations(rows);
       } catch (err) {
-        console.error("Erreur de chargement de la galerie avancee", err);
-        alert(err?.message || "Erreur lors du chargement des donnees.");
+        console.error("Erreur de chargement de la galerie avancée", err);
+        alert(err?.message || "Erreur lors du chargement des données.");
       } finally {
         setIsLoading(false);
       }
@@ -90,7 +90,7 @@ export default function TeacherAdvancedViewPage() {
 
   const handleBulkDelete = async () => {
     if (!bulkYear || bulkYear.length !== 4) {
-      alert("Veuillez entrer une annee valide (ex: 2024).");
+      alert("Veuillez entrer une année valide (ex: 2024).");
       return;
     }
 
@@ -100,13 +100,13 @@ export default function TeacherAdvancedViewPage() {
     );
 
     if (targets.length === 0) {
-      alert(`Aucune realisation trouvee pour l'annee ${yearNum}.`);
+      alert(`Aucune réalisation trouvée pour l'année ${yearNum}.`);
       return;
     }
 
     if (
       !window.confirm(
-        `ATTENTION\nVous etes sur le point de supprimer DEFINITIVEMENT ${targets.length} realisation(s) de l'annee ${yearNum}.\nCette action est irreversible. Continuer ?`,
+        `ATTENTION\nVous êtes sur le point de supprimer DÉFINITIVEMENT ${targets.length} réalisation(s) de l'année ${yearNum}.\nCette action est irréversible. Continuer ?`,
       )
     ) {
       return;
@@ -121,7 +121,7 @@ export default function TeacherAdvancedViewPage() {
       prev.filter((r) => new Date(r.publicationDate).getFullYear() !== yearNum),
     );
     setBulkYear("");
-    alert(`${okCount} realisation(s) supprimee(s) avec succes.`);
+    alert(`${okCount} réalisation(s) supprimée(s) avec succès.`);
   };
 
   const handleToggleHideStatus = async (row) => {
@@ -138,12 +138,12 @@ export default function TeacherAdvancedViewPage() {
         ),
       );
     } catch (err) {
-      alert(err?.message || "Erreur lors du changement de visibilite.");
+      alert(err?.message || "Erreur lors du changement de visibilité.");
     }
   };
 
   const handleDeleteOne = async (id) => {
-    if (!window.confirm("Supprimer definitivement ce rendu ?")) return;
+    if (!window.confirm("Supprimer définitivement ce rendu ?")) return;
     try {
       await saeService.deleteSubmission(id);
       setRealizations((prev) => prev.filter((r) => r.id !== id));
@@ -200,7 +200,7 @@ export default function TeacherAdvancedViewPage() {
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-4xl font-black tracking-tight text-slate-950">
-                Visualisation avancee
+                Visualisation avancée
               </h1>
               <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
                 {realizations.length} projets
@@ -208,7 +208,7 @@ export default function TeacherAdvancedViewPage() {
             </div>
             <p className="text-base text-slate-600">
               Pilotez les publications avec des filtres rapides et des actions
-              de moderation.
+                de modération.
             </p>
           </div>
         </section>
@@ -223,7 +223,7 @@ export default function TeacherAdvancedViewPage() {
                 <div className="relative min-w-[250px] flex-1 sm:flex-initial">
                   <input
                     type="text"
-                    placeholder="Rechercher un etudiant ou un projet"
+                      placeholder="Rechercher un étudiant ou un projet"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
@@ -237,7 +237,7 @@ export default function TeacherAdvancedViewPage() {
                 >
                   {matieres.map((m) => (
                     <option key={m} value={m}>
-                      {m === "Toutes" ? "Toutes matieres" : m}
+                      {m === "Toutes" ? "Toutes matières" : m}
                     </option>
                   ))}
                 </select>
@@ -271,10 +271,10 @@ export default function TeacherAdvancedViewPage() {
                 <button
                   onClick={handleBulkDelete}
                   className="inline-flex h-11 items-center rounded-xl bg-red-600 px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700"
-                  title="Supprime toutes les realisations publiees pour l'annee indiquee. Action irreversible."
-                  aria-label="Supprimer toutes les realisations d'une annee"
+                  title="Supprime toutes les réalisations publiées pour l'année indiquée. Action irréversible."
+                  aria-label="Supprimer toutes les réalisations d'une année"
                 >
-                  Suppression par annee
+                  Suppression par année
                 </button>
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function TeacherAdvancedViewPage() {
               <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th scope="col" className="px-6 py-4">
-                    Etudiant
+                    Étudiant
                   </th>
                   <th scope="col" className="px-6 py-4">
                     Titre SAE
@@ -296,7 +296,7 @@ export default function TeacherAdvancedViewPage() {
                     Promo
                   </th>
                   <th scope="col" className="px-6 py-4">
-                    Matiere
+                    Matière
                   </th>
                   <th scope="col" className="px-6 py-4">
                     Date publication
@@ -319,7 +319,7 @@ export default function TeacherAdvancedViewPage() {
                       colSpan="8"
                       className="px-6 py-12 text-center text-slate-500"
                     >
-                      Chargement des donnees...
+                      Chargement des données...
                     </td>
                   </tr>
                 ) : displayedRows.length > 0 ? (
@@ -374,7 +374,7 @@ export default function TeacherAdvancedViewPage() {
                         <button
                           onClick={() => handleDeleteOne(row.id)}
                           className="rounded p-1 text-red-400 transition-colors hover:text-red-700"
-                          title="Supprimer definitivement"
+                          title="Supprimer définitivement"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -387,7 +387,7 @@ export default function TeacherAdvancedViewPage() {
                       colSpan="8"
                       className="px-6 py-12 text-center font-bold text-slate-500"
                     >
-                      Aucune realisation trouvee.
+                      Aucune réalisation trouvée.
                     </td>
                   </tr>
                 )}

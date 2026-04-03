@@ -313,13 +313,13 @@ export default function TeacherAnnouncementsPage() {
             imageAlt="Erreur de chargement"
             title={
               isApiFetchFail
-                ? "Echec de connexion a l'API"
+                ? "Échec de connexion à l'API"
                 : "Erreur de chargement"
             }
             description={
               isApiFetchFail
-                ? "La requete API a echoue. Verifiez la connexion puis reessayez."
-                : "Une erreur est survenue lors du chargement des donnees."
+                ? "La requête API a échoué. Vérifiez la connexion puis réessayez."
+                : "Une erreur est survenue lors du chargement des données."
             }
             action={
               <button
@@ -327,7 +327,7 @@ export default function TeacherAnnouncementsPage() {
                 onClick={loadData}
                 className="inline-flex h-9 items-center rounded-lg bg-purple-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-purple-700"
               >
-                Reessayer
+                Réessayer
               </button>
             }
           />
@@ -409,14 +409,14 @@ export default function TeacherAnnouncementsPage() {
                 imageSrc="/images/undraw_pin-to-board_eoie.svg"
                 imageAlt="Aucune annonce"
                 title="Aucune annonce"
-                description="Les annonces que vous publiez sur vos SAE apparaitront ici."
+                description="Les annonces que vous publiez sur vos SAE apparaîtront ici."
               />
             ) : (
               <IllustratedState
                 imageSrc="/images/undraw_pin-to-board_eoie.svg"
                 imageAlt="Aucune annonce pour cette SAE"
                 title="Aucune annonce pour cette SAE"
-                description="Selectionnez une autre SAE ou publiez une nouvelle annonce."
+                description="Sélectionnez une autre SAE ou publiez une nouvelle annonce."
               />
             )}
           </section>

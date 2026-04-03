@@ -261,11 +261,11 @@ const RegisterPage = () => {
                   disabled={isLoading}
                   className="h-11 rounded-xl text-sm font-bold px-4 py-2 gap-2 flex items-center justify-center"
                 >
-                  {isLoading ? "Inscription en cours..." : "Creer mon compte"}
+                  {isLoading ? "Inscription en cours..." : "Créer mon compte"}
                 </Button>
 
                 <div className="text-center text-sm text-slate-500">
-                  Vous avez deja un compte ?{" "}
+                  Vous avez déjà un compte ?{" "}
                   <Link
                     to="/login"
                     className="font-bold text-purple-600 hover:text-purple-700 hover:underline"
@@ -279,7 +279,7 @@ const RegisterPage = () => {
                     to="/"
                     className="font-medium text-slate-500 hover:text-slate-700 hover:underline"
                   >
-                    Retourner a la page d'accueil
+                    Retourner à la page d'accueil
                   </Link>
                 </div>
               </div>

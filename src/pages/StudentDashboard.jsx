@@ -102,7 +102,7 @@ export default function StudentDashboard() {
       } catch (error) {
         console.error("[StudentDashboard] Erreur chargement SAE:", error);
         setFetchError(
-          "Impossible de charger vos SAE pour le moment. Veuillez reessayer dans quelques instants.",
+          "Impossible de charger vos SAE pour le moment. Veuillez réessayer dans quelques instants.",
         );
         setSaes([]);
       } finally {
@@ -165,12 +165,12 @@ export default function StudentDashboard() {
   };
 
   const emptyTitle =
-    saes.length === 0 ? "Aucune SAE assignee" : "Aucune SAE dans cet onglet";
+    saes.length === 0 ? "Aucune SAE assignée" : "Aucune SAE dans cet onglet";
 
   const emptyDescription =
     saes.length === 0
-      ? "Votre enseignant n'a pas encore publie de SAE pour votre promotion."
-      : "Essayez de changer d'onglet ou d'effacer les filtres matiere.";
+      ? "Votre enseignant n'a pas encore publié de SAE pour votre promotion."
+      : "Essayez de changer d'onglet ou d'effacer les filtres matière.";
 
   return (
     <div className="flex-1 min-h-screen bg-white font-montserrat">
@@ -178,15 +178,15 @@ export default function StudentDashboard() {
         {/* Header Section */}
         <div className="space-y-2">
           <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Tableau de bord etudiant
+            Tableau de bord étudiant
           </p>
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1 space-y-3">
               <h1 className="text-2xl font-black tracking-tight text-slate-950">
-                Bonjour {user?.firstname || user?.name?.firstname || "etudiant"}
+                Bonjour {user?.firstname || user?.name?.firstname || "étudiant"}
               </h1>
               <p className="text-base text-slate-600">
-                Organisez vos priorites SAE avec un suivi clair et rapide.
+                Organisez vos priorités SAE avec un suivi clair et rapide.
               </p>
             </div>
             <img

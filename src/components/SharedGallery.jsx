@@ -366,12 +366,12 @@ export default function SharedGallery({
             imageAlt="Erreur de chargement de la galerie"
             title={
               isApiFetchFail
-                ? "Echec de connexion a l'API"
+                ? "Échec de connexion à l'API"
                 : "Erreur de chargement"
             }
             description={
               isApiFetchFail
-                ? "La requete API a echoue. Verifiez votre connexion et reessayez."
+                ? "La requête API a échoué. Vérifiez votre connexion et réessayez."
                 : "Impossible de charger la galerie pour le moment."
             }
           />
@@ -502,13 +502,13 @@ export default function SharedGallery({
             }
             title={
               projects.length === 0
-                ? "Aucun projet publie"
+                ? "Aucun projet publié"
                 : "Aucun projet pour ces filtres"
             }
             description={
               projects.length === 0
-                ? "Les projets apparaitront ici des qu'ils seront publies."
-                : "Essayez d'ajuster la recherche ou les filtres de matiere et d'annee."
+                ? "Les projets apparaîtront ici dès qu'ils seront publiés."
+                : "Essayez d'ajuster la recherche ou les filtres de matière et d'année."
             }
           />
         )}
