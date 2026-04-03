@@ -8,7 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "./",
+  // On Vercel root deployment, use absolute base so assets resolve on deep-link refresh.
+  base: "/",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
