@@ -1,69 +1,59 @@
-# Welizy Frontend
+Welizy - Plateforme de suivi des SAE (Frontend)
+Application web centralisée pour la gestion, le suivi et la présentation des projets (SAE) du département MMI de l'IUT de Vélizy.
 
-Application web pour la gestion et la présentation des projets étudiants MMI à l'IUT de Vélizy.
+**Stack Technique**
 
-## Pré-requis
+Framework : React 19
+Build Tool : Vite 6
+Styling : Tailwind CSS
+Navigation : React Router 7
+Validation : Zod & React Hook Form
+Icônes : Lucide React
 
-- Node.js >= 16
-- npm >= 8
+**Pré-requis**
+Node.js >= 20.0
+npm >= 10.0
 
-## Installation
-
-### Cloner le projet
-
-```bash
+**Installation & Développement**
+1. Cloner le projet
+Bash
 git clone https://github.com/Yann6790/Frontend.git
 cd Frontend
-```
-
-### Installer les dépendances
-
-```bash
+2. Installer les dépendances
+Bash
 npm install
-```
-
-## Développement
-
-Lancer le serveur de développement avec hot reload :
-
-```bash
+3. Lancer en local
+Bash
 npm run dev
-```
+L'application sera accessible sur http://localhost:5173.
 
-L'application sera accessible à `http://localhost:5173`
+**Déploiement Vercel & Gestion de l'API**
+Pour éviter les erreurs de session en production (cookies bloqués en cross-site) et les erreurs CORS, ce projet utilise un Rewrite Vercel défini dans le fichier vercel.json.
 
-## Build
+Configuration des Rewrites
+Le dossier /api/* du frontend est redirigé de manière transparente vers l'URL du backend (ex: Render).
+Points importants pour la mise en ligne :
+URL Relative : Dans le code frontend, utilisez uniquement des chemins relatifs (ex: /api/auth/me) sans préfixe de domaine.
+Variables d'environnement : Ne définissez pas VITE_API_URL dans les paramètres Vercel. Le fichier vercel.json s'occupe de faire le pont.
+CORS : Vérifiez que l'URL de votre déploiement Vercel est bien autorisée dans la "Whitelist" de votre Backend.
 
-Générer la version optimisée pour la production :
-
-```bash
+**Build & Production**
+Pour générer manuellement la version optimisée :
+Bash
 npm run build
-```
+Le résultat se trouve dans le dossier /dist. Sur Vercel, ce build est automatique à chaque "Push" sur la branche main.
 
-## Deploiement Vercel (Auth)
-
-Pour eviter les erreurs de session en production (cookie bloque en cross-site),
-ce projet utilise un rewrite Vercel de `/api/*` vers le backend Render via `vercel.json`.
-
-Points importants :
-
-- Ne pas definir `VITE_API_URL` en production Vercel (laisser vide/inexistante)
-- Garder les appels frontend en URL relative (`/api/...`)
-- Verifier que l'origine Vercel est autorisee cote backend
-
-## Linting
-
-Vérifier la qualité du code :
-
-```bash
+**Qualité du Code**
+Bash
+# Vérifier le linting (ESLint)
 npm run lint
-```
 
-## Stack technique
+# Prévisualiser le build localement
+npm run preview
 
-- **React** - Librairie UI
-- **Vite** - Build tool rapide
-- **Tailwind CSS** - Styles
-- **React Router** - Navigation
-- **Lucide React** - Icônes
-- **Zod** - Validation de formulaires
+**Contexte du Projet (SAE 403)**
+Ce projet répond aux objectifs pédagogiques de la SAE :
+
+Analyse du besoin : Centralisation des ressources SAE (consignes, livrables, annonces, visualisation).
+UX/UI : Interface spécifique pour 4 profils (Étudiant, Enseignant, Public, Admin).
+Architecture Pro : Séparation entre Frontend (Vercel) et Backend (API RESTful).
