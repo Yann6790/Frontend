@@ -45,15 +45,18 @@ Le résultat se trouve dans le dossier /dist. Sur Vercel, ce build est automatiq
 
 **Qualité du Code**
 Bash
-# Vérifier le linting (ESLint)
+
+**Vérifier le linting (ESLint)**
 npm run lint
 
-# Prévisualiser le build localement
+**Prévisualiser le build localement**
 npm run preview
 
 **Contexte du Projet (SAE 403)**
 Ce projet répond aux objectifs pédagogiques de la SAE :
 
 Analyse du besoin : Centralisation des ressources SAE (consignes, livrables, annonces, visualisation).
+
 UX/UI : Interface spécifique pour 4 profils (Étudiant, Enseignant, Public, Admin).
+
 Architecture Pro : Séparation entre Frontend (Vercel) et Backend (API RESTful).
